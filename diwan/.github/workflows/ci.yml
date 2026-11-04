@@ -1,0 +1,345 @@
+# no-broker-dep:allow-file: the P2P E2E job further down names Pier/vulos-relayd describing
+# the DEFAULT built-in surface's independence from any relay ("no Vulos OS, no Pier, no relay
+# and no account") and a historical note about a since-removed sibling-repo clone step — no
+# workflow step here fetches, builds against, or depends on anything named pier.
+#
+# .github/workflows/ci.yml — build, test, and vet localfirst (Go + frontend)
+#
+# Triggers on:
+#   - push to any branch
+#   - pull request
+#
+# Jobs:
+#   go-ci      — build, test (short), vet the Go backend
+#   frontend   — npm ci, build, test the frontend
+
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+# Restrict default permissions to read-only; no job needs write access.
+permissions:
+  contents: read
+
+jobs:
+
+  # ── Go backend ──────────────────────────────────────────────────────────────
+  go-ci:
+    name: Go build / test / vet
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Build
+        run: go build ./...
+
+      - name: Test (short)
+        run: go test -short ./...
+
+      - name: Vet
+        run: go vet ./...
+
+  # ── Go backend — Postgres integration ───────────────────────────────────────
+  # Runs the full Go test suite with VULOS_TEST_POSTGRES_DSN set so the
+  # dual-backend contract tests (backend_contract_test.go,
+  # fileacl_postgres_test.go) exercise a real Postgres instance in the
+  # "office" schema. Depends on the base go-ci job succeeding first.
+  go-postgres:
+    name: Go test (Postgres — schema office)
+    runs-on: ubuntu-latest
+    needs: go-ci
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: vulos
+          POSTGRES_PASSWORD: vulos
+          POSTGRES_DB: vulos_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U vulos"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run tests with Postgres backend
+        env:
+          VULOS_TEST_POSTGRES_DSN: "postgres://vulos:vulos@localhost:5432/vulos_test?sslmode=disable"
+        run: go test ./backend/storage/... -v -count=1
+
+  # ── Frontend ────────────────────────────────────────────────────────────────
+  # The frontend project lives in web/ (its own package.json/package-lock.json).
+  frontend:
+    name: Frontend build / test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # scripts/assert-p2p-suite-ran.mjs is the CI gate (job e2e-p2p below)
+      # that proves the built-in-rendezvous P2P suite actually EXECUTED,
+      # not just that it was collected — the logic that gate is trusted
+      # through, yet was itself unchecked JavaScript parsing untyped
+      # JSON.parse output. scripts/tsconfig.json (allowJs+checkJs) brings
+      # it under real tsc checking without a runtime rename; blocking,
+      # same as Typecheck above.
+      - name: Typecheck (CI gate scripts)
+        run: npm run typecheck:scripts
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+  # ── Frontend E2E (Playwright) ───────────────────────────────────────────────
+  # Browser-level end-to-end tests against a production `vite preview` build,
+  # with the /v1 + doc APIs mocked in-browser (see e2e/fixtures.js). No Go
+  # backend required — the suite is hermetic.
+  e2e:
+    name: Frontend E2E (Playwright / chromium)
+    runs-on: ubuntu-latest
+    needs: frontend
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build:frontend
+
+      - name: Install Playwright chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: npx playwright test --project=chromium
+        env:
+          CI: 'true'
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: web/playwright-report/
+          retention-days: 7
+
+  # ── Real P2P integration E2E (one bare binary, two browsers) ────────────────
+  # The opposite of the job above: nothing is mocked. It builds the real `localfirst`
+  # binary, runs it with its OWN built-in peer-discovery surface
+  # (backend/rendezvous — the default), and proves that two real browsers
+  # collaborate peer-to-peer through it over a real WebRTC data channel, with no
+  # Vulos OS, no Pier, no relay and no account. That is the repo's central
+  # architectural claim, and this is the job that holds it.
+  #
+  # NOTHING IS FETCHED AT TEST TIME. This job used to `git clone` a sibling relay
+  # repository so the suite could build a `vulos-relayd` to signal through. Two
+  # things were wrong with that: the claim under test became conditional on
+  # another product, and the clone targeted a repo that was later renamed — so the
+  # job failed for a reason unrelated to this code while the claim it was meant to
+  # guard went unchecked. Everything this job needs now comes from this repository.
+  #
+  # Deliberately a SEPARATE job so its heavier, WebRTC-dependent runtime can never
+  # destabilise the fast suites.
+  e2e-p2p:
+    name: Real P2P E2E (built-in rendezvous, no external deps)
+    runs-on: ubuntu-latest
+    needs: frontend
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright chromium
+        run: npx playwright install --with-deps chromium
+
+      # The default-path suite. VULOS_RELAYD_BIN is deliberately NOT set, so the
+      # external-relay suite skips (with its reason printed) while this one runs —
+      # it has no external dependency and therefore cannot be skipped.
+      #
+      # PLAYWRIGHT_JSON_OUTPUT_NAME also makes playwright.p2p.config.js's `json`
+      # reporter (CI-only, see that file) write a machine-readable per-test
+      # report to $RUNNER_TEMP/p2p-report.json. The next step asserts against
+      # it — this run is not repeated just to gather that data.
+      - name: Run real P2P E2E (built-in discovery surface)
+        run: npm run test:e2e:p2p
+        env:
+          CI: 'true'
+          PLAYWRIGHT_JSON_OUTPUT_NAME: ${{ runner.temp }}/p2p-report.json
+
+      # Fail closed on a vanished suite — including one that vanishes AT
+      # RUNTIME. `playwright test --list` (the previous form of this check)
+      # only proves collection: its output is byte-identical whether every
+      # test in the file ran to completion or every one of them skipped
+      # itself (e.g. a beforeAll that bails), because `--list` never executes
+      # anything and `playwright test` itself exits 0 when a suite is all
+      # skips. So a collection-only check catches a renamed file or a
+      # testMatch that stops matching, but NOT a suite that is collected yet
+      # never actually runs.
+      #
+      # This step instead reads the JSON report produced by the run above and
+      # asserts on ACTUAL per-test status: exactly 4 tests from
+      # e2e-p2p/builtin-rendezvous-p2p.e2e.ts, including the payoff test, must
+      # report "passed" — no more, no fewer, none "skipped", none "failed".
+      # See web/scripts/assert-p2p-suite-ran.mjs for the exact check.
+      - name: Assert the default-path suite really EXECUTED
+        run: node scripts/assert-p2p-suite-ran.mjs "$RUNNER_TEMP/p2p-report.json"
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-p2p
+          path: web/playwright-report/
+          retention-days: 7
+
+  # ── Published docs match their sources ──────────────────────────────────────
+  # site/docs/*.md are copies of docs/*.md (plus CHANGELOG.md and ROADMAP.md).
+  # They were copied by hand once and nothing kept them in step, so every later
+  # edit to a source published stale text silently — a diagram restyle landed in
+  # docs/ARCHITECTURE.md while site/docs/architecture.md kept serving the old
+  # one. Dependency-free, so it needs no npm install and runs in seconds.
+  docs-sync:
+    name: site/docs mirrors docs/
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Published docs are in sync with their sources
+        run: node scripts/sync-site-docs.mjs --check
+
+  # ── site/ render gate ───────────────────────────────────────────────────────
+  # The landing and the docs page, loaded in a real browser at eight widths in
+  # both colour schemes, plus every docs chapter at 320 and 1440. It measures
+  # what static inspection cannot: the size text is actually DRAWN at after any
+  # transform, elements crossing the viewport edge, distorted or upscaled
+  # images, dead fragment links, chapters whose prose failed to fetch, and any
+  # subresource fetched off-origin.
+  #
+  # Two invocations, both of which must pass. `--selftest` runs first and
+  # deliberately breaks each invariant, because a gate that has quietly stopped
+  # failing looks exactly like one that works — this suite has found roughly
+  # twenty-two checks printing PASS while examining nothing. If the self-test
+  # cannot make the gate go red, the gate's green is worthless and the job stops
+  # before the real run can report it.
+  #
+  # No `|| true`, no `continue-on-error`, and neither command is piped into
+  # anything: a pipeline would report the exit status of the LAST command and
+  # throw the gate's away.
+  site-render:
+    name: site/ renders correctly
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      # localfirst is a Go repo with no root package.json, so playwright comes from
+      # web/, which already depends on it for the E2E suites. The gate resolves
+      # it through PLAYWRIGHT_NODE_MODULES rather than a bare import, since a
+      # bare specifier would resolve from scripts/ and find nothing.
+      - name: Install dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Install Playwright chromium
+        working-directory: web
+        run: npx playwright install --with-deps chromium
+
+      - name: Prove the render gate can fail
+        run: node scripts/check-render.mjs --selftest
+        env:
+          PLAYWRIGHT_NODE_MODULES: ${{ github.workspace }}/web/node_modules
+
+      - name: Render gate
+        run: node scripts/check-render.mjs
+        env:
+          PLAYWRIGHT_NODE_MODULES: ${{ github.workspace }}/web/node_modules

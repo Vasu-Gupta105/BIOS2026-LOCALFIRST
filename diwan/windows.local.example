@@ -1,0 +1,14 @@
+# Start-Diwan.ps1 copies this to the ignored windows.local on first launch.
+server:
+  addr: "127.0.0.1:8080"
+  data_dir: "./data"
+  uploads_dir: "./uploads"
+
+auth:
+  enabled: false
+
+storage:
+  type: "local"
+
+collab:
+  builtin_rendezvous: true

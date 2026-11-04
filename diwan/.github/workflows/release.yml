@@ -1,0 +1,271 @@
+# .github/workflows/release.yml — build and publish a GitHub Release
+#
+# Triggers on:  push of a tag matching v* (e.g. v1.0.0, v1.2.3-rc.1)
+#
+# Jobs:
+#   build-and-test  — build frontend + backend, run all tests, verify tag
+#                     matches both package.json and the binary --version,
+#                     cross-compile Go binaries (linux + darwin, amd64 + arm64),
+#                     generate SHA-256 checksums, and upload artifacts.
+#   check-npm-token — probe whether NPM_TOKEN is available (secrets cannot be
+#                     read in `if:` expressions directly).
+#   publish-npm     — publish @vulos/office-client to npm (gated on NPM_TOKEN).
+#   github-release  — create a GitHub Release with notes + all artifacts.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write   # create GitHub Releases + upload assets
+  id-token: write   # npm --provenance (OIDC)
+
+jobs:
+
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-24.04
+
+    steps:
+      # ── Checkout ──────────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+
+      # ── Toolchain ─────────────────────────────────────────────────────────────
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+          registry-url: 'https://registry.npmjs.org'
+
+      # ── Derive semver (strip leading 'v') ─────────────────────────────────────
+      - name: Extract version
+        id: version
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "semver=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      # ── Verify tag == package.json version ────────────────────────────────────
+      - name: Check tag/package version match
+        run: |
+          PKG_VERSION=$(node -p "require('./web/package.json').version")
+          TAG_VERSION="${{ steps.version.outputs.semver }}"
+          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+            echo "ERROR: package.json version ($PKG_VERSION) != tag ($TAG_VERSION)"
+            exit 1
+          fi
+          echo "package.json version check passed: $PKG_VERSION"
+
+      # ── Verify tag == binary --version ────────────────────────────────────────
+      - name: Verify tag matches binary version
+        run: |
+          VERSION="${{ steps.version.outputs.semver }}"
+          go build -ldflags "-X main.Version=${VERSION}" -o /tmp/localfirst-check .
+          BIN_VER=$(/tmp/localfirst-check --version)
+          if [ "${BIN_VER}" != "${VERSION}" ]; then
+            echo "ERROR: binary reports version '${BIN_VER}' but tag is '${VERSION}'"
+            exit 1
+          fi
+          echo "Binary version check passed: ${VERSION}"
+
+      # ── Frontend: full build + library build ──────────────────────────────────
+      # The frontend project (package.json, node_modules) lives in web/.
+      - name: Install npm dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Build frontend (all targets)
+        working-directory: web
+        run: npm run build:all
+
+      - name: Run frontend tests
+        working-directory: web
+        run: npm test
+
+      # ── Go backend: tests + cross-compile ─────────────────────────────────────
+      - name: Go test
+        run: go test -short ./...
+
+      - name: Go vet
+        run: go vet ./...
+
+      - name: Cross-compile linux/amd64
+        env:
+          GOOS: linux
+          GOARCH: amd64
+          CGO_ENABLED: '0'
+        run: |
+          go build \
+            -trimpath \
+            -ldflags "-s -w -X main.Version=${{ steps.version.outputs.semver }}" \
+            -o localfirst-linux-amd64 \
+            .
+
+      - name: Cross-compile linux/arm64
+        env:
+          GOOS: linux
+          GOARCH: arm64
+          CGO_ENABLED: '0'
+        run: |
+          go build \
+            -trimpath \
+            -ldflags "-s -w -X main.Version=${{ steps.version.outputs.semver }}" \
+            -o localfirst-linux-arm64 \
+            .
+
+      - name: Cross-compile darwin/amd64
+        env:
+          GOOS: darwin
+          GOARCH: amd64
+          CGO_ENABLED: '0'
+        run: |
+          go build \
+            -trimpath \
+            -ldflags "-s -w -X main.Version=${{ steps.version.outputs.semver }}" \
+            -o localfirst-darwin-amd64 \
+            .
+
+      - name: Cross-compile darwin/arm64
+        env:
+          GOOS: darwin
+          GOARCH: arm64
+          CGO_ENABLED: '0'
+        run: |
+          go build \
+            -trimpath \
+            -ldflags "-s -w -X main.Version=${{ steps.version.outputs.semver }}" \
+            -o localfirst-darwin-arm64 \
+            .
+
+      # ── Archive dist-lib so the publish + release jobs can use it ─────────────
+      # dist-lib/ is now produced under web/ (build:all ran there); -C keeps the
+      # archive's internal layout as dist-lib/... rather than web/dist-lib/...,
+      # unchanged from before the move.
+      - name: Archive dist-lib
+        run: |
+          tar -czf office-client-${{ steps.version.outputs.tag }}-dist.tar.gz -C web dist-lib/
+
+      # ── Checksums ─────────────────────────────────────────────────────────────
+      - name: Generate SHA-256 checksums
+        run: |
+          sha256sum \
+            localfirst-linux-amd64 \
+            localfirst-linux-arm64 \
+            localfirst-darwin-amd64 \
+            localfirst-darwin-arm64 \
+            > checksums.txt
+          cat checksums.txt
+
+      # ── Upload artifacts for downstream jobs ──────────────────────────────────
+      - name: Upload binary artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: |
+            localfirst-linux-amd64
+            localfirst-linux-arm64
+            localfirst-darwin-amd64
+            localfirst-darwin-arm64
+            checksums.txt
+          retention-days: 1
+
+      - name: Upload dist-lib artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-lib
+          path: office-client-${{ github.ref_name }}-dist.tar.gz
+          retention-days: 1
+
+  # ── Probe for NPM_TOKEN before gating the publish job ─────────────────────────
+  check-npm-token:
+    name: Check NPM_TOKEN availability
+    needs: build-and-test
+    runs-on: ubuntu-24.04
+    outputs:
+      has_token: ${{ steps.probe.outputs.has_token }}
+    steps:
+      - name: Probe for NPM_TOKEN
+        id: probe
+        run: |
+          if [ -n "$NPM_TOKEN_VAL" ]; then
+            echo "has_token=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_token=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          NPM_TOKEN_VAL: ${{ secrets.NPM_TOKEN }}
+
+  # ── Publish @vulos/office-client to npm ───────────────────────────────────────
+  publish-npm:
+    name: Publish to npm
+    needs: check-npm-token
+    runs-on: ubuntu-24.04
+    if: needs.check-npm-token.outputs.has_token == 'true'
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Node (with npm registry auth)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build library
+        run: npm run build:lib
+
+      - name: Publish
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # ── Create GitHub Release ─────────────────────────────────────────────────────
+  github-release:
+    name: Create GitHub Release
+    needs: build-and-test
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download binary artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries
+
+      - name: Download dist-lib artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-lib
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            localfirst-linux-amd64
+            localfirst-linux-arm64
+            localfirst-darwin-amd64
+            localfirst-darwin-arm64
+            checksums.txt
+            office-client-${{ github.ref_name }}-dist.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

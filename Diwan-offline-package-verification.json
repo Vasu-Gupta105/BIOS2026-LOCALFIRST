@@ -1,0 +1,35 @@
+{
+  "passed": true,
+  "verifiedAt": "2026-11-01T04:03:19.844Z",
+  "package": "diwan/offline-package/windows-x64-1793505737510",
+  "cacheVersion": "10135d6e2ff4f92f",
+  "nativeVersion": "45ff9836e469a80a",
+  "testServerUrl": "http://127.0.0.1:8766",
+  "launcherUrl": "http://127.0.0.1:8765",
+  "assetCount": 677,
+  "offlineE2e": {
+    "passed": 32,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0
+  },
+  "localNativeRequests": 22,
+  "hardware": {
+    "radioAvailable": true,
+    "hostEntryFromHomeVerified": true,
+    "ownerSharingStarted": true,
+    "shortPairingCodeGeneratedAndDisplayed": true,
+    "invitationExportImportVerified": true,
+    "ownerSharingStopped": true,
+    "twoPhysicalDeviceTransferVerified": false
+  },
+  "externalOrCloudApiRequests": [],
+  "browserErrors": [],
+  "checks": [
+    "Packaged executable starts without Node/Go on its PATH and serves the expected frontend/native versions",
+    "Fresh browser creates and saves a local document",
+    "When a radio is active, the real native host starts/stops document sharing and the editor retains its content",
+    "Fully offline reload preserves the committed document and correct save status",
+    "No cloud/document API or external requests; native-control traffic stays on loopback"
+  ]
+}

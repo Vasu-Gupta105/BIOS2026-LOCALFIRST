@@ -1,0 +1,51 @@
+/localfirst
+/diwan
+/localfirst.exe
+/diwan.exe
+data/
+uploads/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist/*
+!dist/.gitkeep
+
+# Playwright E2E artifacts (generated under web/, where playwright.config.js
+# and playwright.p2p.config.js now live and Playwright is invoked from)
+/web/test-results/
+/web/playwright-report/
+/web/blob-report/
+/web/.playwright/
+/web/e2e-results/
+dist-ssr
+dist-lib/
+dist-office/
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+.claude
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Generated deployment bundles and provider project links
+/deploy/
+/.vercel/
+/dist-offline/
+/offline-package/
+/compute-experiment-package/
+/relay-experiment-package/

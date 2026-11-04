@@ -1,0 +1,4 @@
+# Preserve the workspace's existing file bytes and line endings.
+* -text
+
+scripts/railway-entrypoint.sh text eol=lf

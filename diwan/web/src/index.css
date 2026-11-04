@@ -1,0 +1,939 @@
+/* ===========================================================================
+ *  LocalFirst — global stylesheet
+ *  ----------------------------------------------------------------------------
+ *  Order matters:
+ *    1. tokens.css           — CSS variables (light + dark)
+ *    2. tailwind base/utils  — base reset + utilities (configured against tokens)
+ *    3. local overrides      — TipTap prose, scrollbars, suggestion marks
+ * ========================================================================== */
+
+@import './design/tokens.css';
+/* P4: KaTeX equation styles (offline; fonts bundled by Vite from the package). */
+@import 'katex/dist/katex.min.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* LocalFirst workspace foundations: small, quiet controls and resilient layout. */
+html { color-scheme: light; }
+html[data-theme="dark"] { color-scheme: dark; }
+/* Dark accent surfaces are lighter; their foreground must follow the token. */
+[data-theme="dark"] .bg-accent.text-white,
+[data-theme="dark"] .bg-accent .text-white,
+[data-theme="dark"] .bg-danger.text-white { color: var(--ink-on-accent); }
+body, #root { height: 100dvh; }
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+button:disabled { cursor: not-allowed; }
+input, textarea, select { accent-color: var(--accent); }
+::selection { background: var(--selection-bg); color: var(--selection-fg); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+@media (max-width: 767px) {
+  .toolbar-btn, .ui-iconbtn { min-width: 36px; min-height: 36px; }
+}
+
+@layer base {
+  * { box-sizing: border-box; }
+
+  html {
+    /* Schibsted Grotesk — contextual alternates + kerning for warm, even chrome */
+    font-feature-settings: "calt", "kern";
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow: hidden;
+    font-family: var(--font-sans);
+    font-size: var(--text-md);
+    letter-spacing: var(--tracking-tight);
+    background: var(--bg);
+    color: var(--ink);
+    transition: background-color var(--duration-base) var(--ease-out),
+                color var(--duration-base) var(--ease-out);
+  }
+  #root {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Native form elements inherit the theme */
+  input, textarea, button, select {
+    font: inherit;
+    color: inherit;
+  }
+  input::placeholder, textarea::placeholder {
+    color: var(--ink-faint);
+  }
+
+  /* Focus ring — accent tint, never the OS default.
+   * No forced radius: elements keep their own corner geometry. */
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--elev-focus);
+  }
+}
+
+/* ============================================================================
+ * Touch / coarse-pointer ergonomics — raise interactive targets to ≥44px so
+ * toolbar buttons, icon buttons and inline controls are tappable. Mouse/
+ * trackpad pointers keep the compact desktop density.
+ * ========================================================================== */
+@media (pointer: coarse) {
+  .toolbar-btn,
+  .ui-iconbtn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* ============================================================================
+ * TipTap document content — serif body, generous leading, measured line length.
+ * The doc itself uses the SERIF (var(--font-serif)) — every other surface uses
+ * the sans grotesque from html.
+ * ========================================================================== */
+.tiptap {
+  outline: none;
+  min-height: 100%;
+  font-family: var(--font-serif);
+  font-size: 17px;          /* slightly larger for serif body — reads larger */
+  line-height: var(--leading-doc);
+  color: var(--ink);
+  letter-spacing: 0;        /* serifs don't want negative tracking */
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--ink-faint);
+  font-style: italic;
+  pointer-events: none;
+  height: 0;
+}
+
+/* Headings — Bricolage display grotesque over the Fraunces serif body: a
+ * magazine-grade pairing (characterful headline + warm reading body). */
+.tiptap h1, .tiptap h2, .tiptap h3, .tiptap h4 {
+  font-family: var(--font-display);
+  letter-spacing: var(--tracking-display);
+  color: var(--ink);
+  font-weight: 600;
+}
+.tiptap h1 { font-size: 2rem;    margin: 2rem 0 0.75rem; line-height: 1.2; }
+.tiptap h2 { font-size: 1.5rem;  margin: 1.75rem 0 0.5rem; line-height: 1.25; }
+.tiptap h3 { font-size: 1.25rem; margin: 1.5rem 0 0.4rem;  line-height: 1.3; }
+.tiptap h4 { font-size: 1.0625rem; margin: 1.25rem 0 0.35rem; line-height: 1.35; }
+
+.tiptap p { margin: 0 0 1rem; }
+
+.tiptap ul { list-style: disc;    padding-left: 1.5rem; margin: 0 0 1rem; }
+.tiptap ol { list-style: decimal; padding-left: 1.5rem; margin: 0 0 1rem; }
+.tiptap ul li, .tiptap ol li { margin: 0.25rem 0; }
+
+.tiptap ul[data-type="taskList"] { list-style: none; padding-left: 0; }
+.tiptap ul[data-type="taskList"] li { display: flex; align-items: flex-start; gap: 0.5rem; margin: 0.25rem 0; }
+.tiptap ul[data-type="taskList"] li > label { margin-top: 0.2rem; flex-shrink: 0; }
+.tiptap ul[data-type="taskList"] li > div { flex: 1; }
+.tiptap ul[data-type="taskList"] input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+
+.tiptap blockquote {
+  border-left: 2px solid var(--accent);
+  padding: 0.25rem 0 0.25rem 1rem;
+  margin: 1.25rem 0;
+  color: var(--ink-muted);
+  font-style: italic;
+  background: transparent;
+}
+
+.tiptap pre {
+  background: var(--bg-elev-2);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 0.875rem 1rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+.tiptap code {
+  background: var(--accent-tint);
+  color: var(--accent-press);
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+.tiptap pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+.tiptap hr { margin: 2rem 0; border: 0; border-top: 1px solid var(--line); }
+
+/* Tables */
+/* WAVE-52: wide tables scroll inside their own wrapper so the page body never
+   scrolls horizontally; keyboard focus inside a cell gets a visible ring. */
+.tiptap .tableWrapper { overflow-x: auto; margin: 1.25rem 0; }
+.tiptap table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 0.95em; table-layout: fixed; }
+.tiptap .tableWrapper > table { margin: 0; }
+.tiptap table td:focus-within, .tiptap table th:focus-within { outline: 2px solid var(--accent); outline-offset: -2px; }
+.tiptap table th {
+  background: var(--bg-elev-2);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--line-strong);
+  letter-spacing: var(--tracking-tight);
+}
+.tiptap table td { padding: 0.5rem 0.75rem; border: 1px solid var(--line); }
+.tiptap table tr:hover td { background: var(--accent-tint); }
+.tiptap .selectedCell { background: var(--accent-tint-2); }
+.tiptap .column-resize-handle {
+  position: absolute; right: 0; top: 0; bottom: 0; width: 2px;
+  background: var(--accent);
+  pointer-events: none;
+}
+
+.tiptap img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  margin: 0.75rem 0;
+  box-shadow: var(--elev-1);
+}
+.tiptap img.ProseMirror-selectednode {
+  box-shadow: var(--elev-2), 0 0 0 2px var(--accent);
+}
+
+.tiptap a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+.tiptap a:hover { color: var(--accent-hover); }
+
+/* ============================================================================
+ * Skeleton shimmer — used by <Skeleton> / <LoadingState.Lines>.
+ * A warm-neutral sunk surface with a slow accent-tinted sheen sweeping across.
+ * Honours prefers-reduced-motion: the sheen stops, leaving a static block.
+ * ========================================================================== */
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-sunk);
+}
+.skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--accent-tint),
+    transparent
+  );
+  animation: skeleton-sweep 1.4s var(--ease-out) infinite;
+}
+@keyframes skeleton-sweep {
+  100% { transform: translateX(100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer::after { animation: none; }
+}
+
+/* ============================================================================
+ * Reduced-motion — global safety net.
+ * The keyframe mounts (fade-in / rise-in / scale-in / slide-in) already collapse
+ * to 0ms because they ride --duration-base / --duration-slow, which the tokens
+ * file zeroes under reduced-motion. Tailwind's built-in `animate-spin`, however,
+ * hard-codes a 1s loop and ignores our tokens — so a save/loading spinner keeps
+ * spinning for motion-sensitive users. Neutralise the looping animations here so
+ * "reduce" is honoured everywhere, not just on our own keyframes.
+ * ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin { animation: none; }
+  .animate-fade-in,
+  .animate-rise-in,
+  .animate-scale-in,
+  .animate-slide-in-right,
+  .animate-slide-in-left,
+  .animate-drawer-in {
+    animation-duration: 1ms;   /* effectively instant, but still "runs" so `both` fill applies */
+  }
+
+  /* Inline Tailwind `transition-*` utilities (hover tints, card lifts, toolbar
+   * feedback) are NOT covered by the token motion vars — they hard-code their
+   * own durations. Collapse them here so "reduce" is honoured across every
+   * editor's micro-interactions, not just our named keyframes. Transforms are
+   * neutralised too so hover-lift cards don't shift for motion-sensitive users. */
+  [class*="transition-"] {
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+  .hover\:-translate-y-0\.5:hover,
+  .group:hover .group-hover\:-translate-y-0,
+  .hover\:-translate-y-1:hover {
+    transform: none !important;
+  }
+}
+
+/* ============================================================================
+ * Scrollbar — slim, warm-neutral, on-brand
+ * ========================================================================== */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--line-emphasis); background-clip: padding-box; border: 2px solid transparent; }
+* { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+
+/* ============================================================================
+ * Mono micro-label — section eyebrows, nav meta, kbd. The IDE trait.
+ * ========================================================================== */
+.mono-label {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  color: var(--ink-faint);
+}
+
+/* ============================================================================
+ * Suggestion (track-changes) inline decorations — token-driven success/error
+ * tints, NOT the loud green/red defaults.
+ * ========================================================================== */
+.suggestion-insert {
+  background-color: var(--signal-success-bg);
+  border-bottom: 1.5px solid var(--signal-success);
+  color: var(--signal-success);
+  border-radius: 2px;
+}
+.suggestion-delete {
+  background-color: var(--signal-error-bg);
+  text-decoration: line-through;
+  text-decoration-color: var(--signal-error);
+  color: var(--signal-error);
+  border-radius: 2px;
+}
+
+/* ============================================================================
+ * WAVE-45: Comment-anchor highlights — subtle amber underline/tint so the
+ * commented span reads as "annotated" without competing with the text. Uses a
+ * warm marker colour distinct from the sage/persimmon suggestion decorations
+ * and the yellow find highlights.
+ * ========================================================================== */
+.comment-highlight {
+  background-color: color-mix(in srgb, var(--signal-warning) 14%, transparent);
+  border-bottom: 2px solid color-mix(in srgb, var(--signal-warning) 55%, transparent);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+.comment-highlight:hover {
+  background-color: color-mix(in srgb, var(--signal-warning) 24%, transparent);
+}
+/* Resolved comments, when shown (e.g. during a jump), read fainter. */
+.comment-highlight-resolved {
+  background-color: color-mix(in srgb, var(--ink-faint) 12%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--ink-faint) 40%, transparent);
+}
+/* The active (clicked/focused) comment gets a stronger tint + ring-ish edge. */
+.comment-highlight-active {
+  background-color: color-mix(in srgb, var(--signal-warning) 28%, transparent);
+  border-bottom-color: var(--signal-warning);
+}
+/* Transient flash when jumping from the panel to the anchor. */
+.comment-highlight-flash {
+  animation: comment-flash 1.2s var(--ease-out);
+  border-radius: 2px;
+}
+@keyframes comment-flash {
+  0%   { background-color: color-mix(in srgb, var(--signal-warning) 55%, transparent); }
+  60%  { background-color: color-mix(in srgb, var(--signal-warning) 40%, transparent); }
+  100% { background-color: transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .comment-highlight-flash { animation: none; outline: 2px solid var(--signal-warning); }
+}
+
+/* ============================================================================
+ * WAVE-45: Footnotes — inline numbered ref + the auto-numbered list at doc end.
+ * The number for both the ref and the list marker is a decoration-supplied
+ * data-fn-num attribute, rendered via ::before so it always reflects body order.
+ * ========================================================================== */
+.tiptap sup.footnote-ref {
+  font-size: 0.7em;
+  line-height: 0;
+  color: var(--accent-press);
+  cursor: default;
+  padding: 0 1px;
+  font-weight: 600;
+}
+.tiptap sup.footnote-ref::before { content: attr(data-fn-num); }
+/* Cold-load fallback (export/print, before the numbering plugin runs). */
+.tiptap sup.footnote-ref:not([data-fn-num])::before { content: "*"; }
+
+.tiptap ol.footnotes-list {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  counter-reset: none;
+  font-size: 0.9em;
+  color: var(--ink-muted);
+}
+.tiptap li.footnote-item {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.35rem 0;
+}
+.tiptap li.footnote-item::before {
+  content: attr(data-fn-num) ".";
+  flex-shrink: 0;
+  font-weight: 600;
+  color: var(--accent-press);
+  min-width: 1.25rem;
+}
+.tiptap li.footnote-item:not([data-fn-num])::before { content: "•"; }
+.tiptap li.footnote-item > * { margin: 0; }
+
+/* ============================================================================
+ * Toolbar system — the one shared toolbar button + chrome, used by all editors
+ * (Docs / Sheets / Slides / PDF) through <ToolbarButton>. Crafted state ladder:
+ * rest → hover (tint) → active/pressed (accent). A pressed micro-nudge and an
+ * inset ring on the active state give the buttons a tactile, precise feel
+ * (Linear / Superhuman grade) without a heavy fill.
+ * ========================================================================== */
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.375rem;
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
+  position: relative;
+  transition: background-color var(--duration-fast) var(--ease-out),
+              color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out),
+              transform var(--duration-fast) var(--ease-out);
+}
+.toolbar-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--ink);
+}
+.toolbar-btn:active:not(:disabled) { transform: translateY(0.5px); }
+.toolbar-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.toolbar-btn.active {
+  background: var(--accent-tint-2);
+  color: var(--accent-press);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.toolbar-btn.active:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-tint-2) 70%, var(--bg-hover));
+}
+.toolbar-btn:focus-visible { box-shadow: var(--elev-focus); z-index: 1; }
+
+/* The chrome the toolbar sits in — a hairline-topped, subtly elevated band.
+ * `.toolbar-surface` gives every editor's toolbar the same material so the
+ * suite reads as one product. */
+.toolbar-surface {
+  background: var(--bg-elev-1);
+  border-bottom: 1px solid var(--line);
+}
+.toolbar-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.0625rem;
+}
+.toolbar-divider {
+  width: 1px;
+  height: 1.25rem;
+  background: var(--line-strong);
+  margin: 0 0.3125rem;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+/* ============================================================================
+ * Status bar — the quiet footer strip (word count / zoom / sync) shared by the
+ * editors. Mono micro-type, hairline top border, sits on the elevated chrome.
+ * ========================================================================== */
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  height: 28px;
+  padding: 0 var(--space-4);
+  background: var(--bg-elev-1);
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-tight);
+  color: var(--ink-faint);
+  flex-shrink: 0;
+}
+.status-bar .status-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  white-space: nowrap;
+}
+.status-bar button.status-item {
+  border-radius: var(--radius-xs);
+  padding: 0.125rem 0.375rem;
+  margin: 0 -0.375rem;
+  transition: background-color var(--duration-fast) var(--ease-out),
+              color var(--duration-fast) var(--ease-out);
+}
+.status-bar button.status-item:hover { background: var(--bg-hover); color: var(--ink-muted); }
+.status-bar button.status-item:focus-visible { box-shadow: var(--elev-focus); outline: none; }
+
+/* ============================================================================
+ * Save / sync indicator — a crafted three-state dot + label (idle-saved,
+ * saving, error). The dot breathes while saving (reduced-motion collapses it).
+ * ========================================================================== */
+.save-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  background: var(--ink-faint);
+  transition: background-color var(--duration-base) var(--ease-out);
+}
+.save-dot--saved  { background: var(--signal-success); }
+.save-dot--saving { background: var(--accent-press); animation: save-pulse 1.4s var(--ease-out) infinite; }
+.save-dot--error  { background: var(--signal-error); }
+.save-dot--offline{ background: var(--signal-warning); }
+@keyframes save-pulse {
+  0%, 100% { opacity: 1;   box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-press) 55%, transparent); }
+  50%      { opacity: 0.6; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-press) 0%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .save-dot--saving { animation: none; }
+}
+
+/* ============================================================================
+ * Presence avatars — collaborator initials chip. Deterministic hue is set per
+ * user via inline --avatar-bg; here we define the crafted shape + stacking.
+ * ========================================================================== */
+.avatar-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  color: #fff;
+  background: var(--avatar-bg, var(--accent));
+  box-shadow: 0 0 0 2px var(--bg-elev-1);
+  user-select: none;
+  flex-shrink: 0;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+.avatar-stack > .avatar-chip { margin-left: -6px; }
+.avatar-stack > .avatar-chip:first-child { margin-left: 0; }
+.avatar-stack:hover > .avatar-chip { transform: translateX(2px); }
+.avatar-stack:hover > .avatar-chip:first-child { transform: none; }
+
+/* Remote-cursor name flag — a crisp sans caplet with a flag-tab corner (the
+ * bottom-left square points back at the caret). Shared by Docs + Sheets cursor
+ * layers so live presence reads identically across the suite. */
+.rc-flag {
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+  line-height: 15px;
+  padding: 1px 6px;
+  border-radius: 5px 5px 5px 1px;
+  white-space: nowrap;
+  user-select: none;
+  box-shadow: var(--elev-1);
+  animation: rc-flag-in var(--duration-fast) var(--ease-out) both;
+}
+@keyframes rc-flag-in {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rc-flag { animation: none; }
+}
+
+/* ============================================================================
+ * Doc desk — the surface the document "paper" rests on. A faint top-lit wash
+ * so the paper card reads as sitting on a desk rather than floating on flat
+ * black. Kept extremely subtle (the document is the protagonist).
+ * ========================================================================== */
+.doc-desk {
+  background:
+    radial-gradient(100% 60% at 50% -5%,
+      color-mix(in srgb, var(--ink) 4%, transparent),
+      transparent 55%),
+    var(--bg);
+}
+
+/* ============================================================================
+ * Slide stage — a soft spotlight behind the deck so the slide reads as the
+ * protagonist on a lit stage rather than a flat card on a flat page. Pure
+ * radial gradient, no asset; sits behind the paper article (which owns z-index
+ * via its own stacking).
+ * ========================================================================== */
+.slide-stage {
+  background:
+    radial-gradient(120% 80% at 50% 0%,
+      color-mix(in srgb, var(--accent) 6%, transparent),
+      transparent 60%),
+    var(--bg);
+}
+
+/* ── Slides selection chrome — resize + rotate handles ──────────────────────
+ * Give the drag/resize/rotate handles a real affordance ladder: rest → hover
+ * (fills accent, lifts) → focus-visible (accent ring). The handles are tiny,
+ * so the hover grow makes them findable without a heavy visual at rest. */
+.vslide-handle {
+  background: var(--paper);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-xs);
+  transition: transform var(--duration-fast) var(--ease-out),
+              background-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+.vslide-handle:hover {
+  background: var(--accent);
+  transform: scale(1.35);
+}
+.vslide-handle:focus-visible {
+  outline: none;
+  background: var(--accent);
+  box-shadow: var(--elev-focus);
+  transform: scale(1.35);
+}
+.vslide-rotate {
+  background: var(--accent);
+  border-radius: var(--radius-pill);
+  transition: transform var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out),
+              opacity var(--duration-fast) var(--ease-out);
+}
+.vslide-rotate:hover { transform: scale(1.25); opacity: 0.9; }
+.vslide-rotate:focus-visible { outline: none; box-shadow: var(--elev-focus); transform: scale(1.25); }
+@media (prefers-reduced-motion: reduce) {
+  .vslide-handle:hover, .vslide-handle:focus-visible,
+  .vslide-rotate:hover, .vslide-rotate:focus-visible { transform: none; }
+}
+
+/* ============================================================================
+ * Subtle paper grain — applied to ".paper" surfaces (Sign view, doc canvas).
+ * Tiny inline SVG so we don't ship an asset. Looks like fine letterpress tooth.
+ * ========================================================================== */
+.paper-grain {
+  position: relative;
+  isolation: isolate;
+}
+.paper-grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.18  0 0 0 0 0.16  0 0 0 0 0.13  0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+:root[data-theme="dark"] .paper-grain::before { opacity: 0.18; mix-blend-mode: screen; }
+.paper-grain > * { position: relative; z-index: 1; }
+
+/* ============================================================================
+ * Fortune Sheet (Sheets editor) — frame the grid as a light "paper" canvas
+ * inside the dark chrome, then dark-theme everything CSS can reach: the
+ * row/column headers, the formula/name bar, the sheet-tab strip and context
+ * menus. The cell area itself is a <canvas> the library paints white — we keep
+ * it light on purpose (a sheet of paper on the desk) but surround it with the
+ * near-black IDE chrome so it reads intentional, not broken.
+ * ========================================================================== */
+
+/* Sheet-tab strip + bottom controls — dark chrome */
+.sheets-themed .fortune-sheettab-container,
+.sheets-themed .fortune-sheettab-container-c,
+.sheets-themed .luckysheet-sheet-area,
+.sheets-themed .luckysheet-bottom-controll-row {
+  background: var(--bg-elev-2) !important;
+  color: var(--ink-muted) !important;
+  border-color: var(--line) !important;
+}
+.sheets-themed .fortune-sheettab-button,
+.sheets-themed .fortune-sheettab-button svg { color: var(--ink-faint) !important; }
+.sheets-themed .fortune-sheettab-button:hover { background: var(--bg-hover) !important; color: var(--ink) !important; }
+
+/* Active sheet tab — teal underline accent */
+.sheets-themed .fortune-sheettab-active,
+.sheets-themed .luckysheet-sheets-item.luckysheet-sheets-item-active {
+  background: var(--paper) !important;
+  color: var(--ink) !important;
+  border-top: 2px solid var(--accent) !important;
+}
+
+/* Formula / name box bar */
+.sheets-themed .fortune-fx-input-container,
+.sheets-themed .fortune-name-box-container,
+.sheets-themed .fortune-name-box {
+  background: var(--bg-elev-2) !important;
+  color: var(--ink-muted) !important;
+  border-color: var(--line) !important;
+}
+.sheets-themed .fortune-fx-icon { color: var(--ink-faint) !important; }
+
+/* Selection overlays — accent */
+.sheets-themed .fortune-cell-selected-move,
+.sheets-themed .fortune-cell-selected-extend,
+.sheets-themed .luckysheet-cs-selection-area {
+  border-color: var(--accent) !important;
+}
+.sheets-themed .luckysheet-cs-selection-fill { background: var(--accent) !important; }
+
+/* Context menus / dialogs — dark surfaces */
+.sheets-themed .fortune-context-menu,
+.sheets-themed .fortune-dialog,
+.sheets-themed .fortune-modal-container {
+  background: var(--bg-elevated) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--line-strong) !important;
+}
+.sheets-themed .fortune-context-menu-divider { background: var(--line) !important; }
+
+/* Frame the whole grid so the canvas reads as a deliberate sheet of paper on
+ * the desk: hairline edge + soft drop shadow. */
+.sheets-themed .fortune-container {
+  border: none !important;
+  box-shadow: inset 0 0 0 1px var(--line-strong), var(--elev-2);
+}
+
+/* ── Sheets grid in DARK theme ───────────────────────────────────────────────
+ * Fortune Sheet paints the whole grid (cells, gridlines, row/column headers)
+ * onto <canvas> elements — CSS cannot recolour those pixels, so in dark mode
+ * the grid would stay a glaring white block on the espresso chrome. We flip it
+ * to dark with a scoped filter on ONLY the grid canvases: invert lightness +
+ * a 180° hue-rotate so white paper → near-espresso and black text → warm cream,
+ * while coloured series/marks keep (roughly) their hue. DOM overlays that live
+ * outside the canvas (selection box, remote cursors, the fill handle) are NOT
+ * inverted, so they keep their token-driven ember colours and read correctly.
+ * ------------------------------------------------------------------------- */
+:root[data-theme="dark"] .sheets-themed .fortune-sheet-container canvas,
+:root[data-theme="dark"] .sheets-themed canvas#luckysheetTableContent {
+  filter: invert(0.9) hue-rotate(180deg);
+}
+/* The scrollbars fortune-sheet draws are DOM, not canvas — keep them on-theme. */
+:root[data-theme="dark"] .sheets-themed .fortune-scrollbar-x,
+:root[data-theme="dark"] .sheets-themed .fortune-scrollbar-y {
+  filter: none;
+  background: var(--bg-elev-2) !important;
+}
+
+/* ===========================================================================
+ *  Slides — object animations (P1: TransitionPanel `animations[]` playback)
+ *  ----------------------------------------------------------------------------
+ *  A small, dependency-free CSS animation layer. Each stored animation maps to
+ *  one of these `.vslide-anim-*` classes (see slideAnimations.js). Used by BOTH
+ *  the in-editor preview and the reveal.js present surface. All honour
+ *  prefers-reduced-motion (the media query at the bottom neutralises them).
+ * ========================================================================== */
+@keyframes vslide-fade-in   { from { opacity: 0 } to { opacity: 1 } }
+@keyframes vslide-fade-out  { from { opacity: 1 } to { opacity: 0 } }
+@keyframes vslide-fly-in    { from { opacity: 0; transform: translateY(28px) } to { opacity: 1; transform: translateY(0) } }
+@keyframes vslide-fly-out   { from { opacity: 1; transform: translateY(0) }    to { opacity: 0; transform: translateY(28px) } }
+@keyframes vslide-zoom-in   { from { opacity: 0; transform: scale(0.6) }       to { opacity: 1; transform: scale(1) } }
+@keyframes vslide-zoom-out  { from { opacity: 1; transform: scale(1) }         to { opacity: 0; transform: scale(0.6) } }
+@keyframes vslide-spin-in   { from { opacity: 0; transform: rotate(-180deg) scale(0.7) } to { opacity: 1; transform: rotate(0) scale(1) } }
+@keyframes vslide-spin-out  { from { opacity: 1; transform: rotate(0) scale(1) } to { opacity: 0; transform: rotate(180deg) scale(0.7) } }
+@keyframes vslide-bounce {
+  0%   { opacity: 0; transform: translateY(-40px) }
+  60%  { opacity: 1; transform: translateY(8px) }
+  80%  { transform: translateY(-4px) }
+  100% { transform: translateY(0) }
+}
+@keyframes vslide-pulse {
+  0%, 100% { transform: scale(1) }
+  50%      { transform: scale(1.08) }
+}
+@keyframes vslide-spin-emph { from { transform: rotate(0) } to { transform: rotate(360deg) } }
+@keyframes vslide-bounce-emph {
+  0%, 100% { transform: translateY(0) }
+  30%      { transform: translateY(-16px) }
+  60%      { transform: translateY(0) }
+}
+
+.vslide-anim-fade-in    { animation: vslide-fade-in   0.5s ease both }
+.vslide-anim-fade-out   { animation: vslide-fade-out  0.5s ease both }
+.vslide-anim-fly-in     { animation: vslide-fly-in    0.55s cubic-bezier(0.16,1,0.3,1) both }
+.vslide-anim-fly-out    { animation: vslide-fly-out   0.5s ease both }
+.vslide-anim-zoom-in    { animation: vslide-zoom-in   0.5s cubic-bezier(0.16,1,0.3,1) both }
+.vslide-anim-zoom-out   { animation: vslide-zoom-out  0.45s ease both }
+.vslide-anim-spin-in    { animation: vslide-spin-in   0.6s cubic-bezier(0.16,1,0.3,1) both }
+.vslide-anim-spin-out   { animation: vslide-spin-out  0.5s ease both }
+.vslide-anim-bounce     { animation: vslide-bounce    0.8s cubic-bezier(0.28,0.84,0.42,1) both }
+.vslide-anim-pulse      { animation: vslide-pulse     0.6s ease both }
+.vslide-anim-spin-emph  { animation: vslide-spin-emph 0.7s ease both }
+.vslide-anim-bounce-emph{ animation: vslide-bounce-emph 0.7s ease both }
+
+@media (prefers-reduced-motion: reduce) {
+  .vslide-anim-fade-in, .vslide-anim-fade-out, .vslide-anim-fly-in,
+  .vslide-anim-fly-out, .vslide-anim-zoom-in, .vslide-anim-zoom-out,
+  .vslide-anim-spin-in, .vslide-anim-spin-out, .vslide-anim-bounce,
+  .vslide-anim-pulse, .vslide-anim-spin-emph, .vslide-anim-bounce-emph {
+    animation: none !important;
+  }
+}
+
+/* ============================================================================
+ * P4 — Equations (KaTeX math nodes)
+ * ========================================================================== */
+.tiptap .math-inline {
+  display: inline-block;
+  vertical-align: middle;
+  padding: 0 2px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.tiptap .math-block {
+  display: block;
+  text-align: center;
+  margin: 1rem 0;
+  padding: 0.35rem 0;
+  cursor: pointer;
+  overflow-x: auto;
+}
+.tiptap .math-inline:hover,
+.tiptap .math-block:hover { background: var(--accent-tint); }
+.tiptap .math-inline.ProseMirror-selectednode,
+.tiptap .math-block.ProseMirror-selectednode {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  background: var(--accent-tint-2);
+}
+.tiptap .math-empty {
+  color: var(--ink-faint);
+  font-style: italic;
+  font-size: 0.9em;
+}
+.tiptap .katex-error { color: var(--danger); font-family: monospace; }
+/* Keep KaTeX legible on the paper surface in dark theme (KaTeX inherits color). */
+.tiptap .katex { color: inherit; }
+
+/* ============================================================================
+ * P1 — Paginated view. Rendered page boundaries drawn as an overlay behind the
+ * text (a view concern — the document itself has no page-break nodes). Each
+ * break is a gap band with a hairline + "page N" label so pages read as real.
+ * ========================================================================== */
+.doc-pages { position: relative; }
+/* Reflow the editing surface on phones/zoomed windows. Stored page geometry
+   remains unchanged for print and export. */
+@media (max-width: 640px) {
+  .doc-desk { --doc-screen-gutter: 20px; padding: 16px 12px; }
+}
+.doc-page-break {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.doc-page-break::before {
+  /* The inter-page gap: a shaded band spanning the page's bottom + top margins,
+     bleeding to the paper edges to read like two sheets meeting. */
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--page-pad-x, 3.5rem));
+  right: calc(-1 * var(--page-pad-x, 3.5rem));
+  top: calc(-1 * var(--page-gap, 40px) / 2);
+  height: var(--page-gap, 40px);
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  box-shadow: inset 0 6px 8px -8px rgba(0,0,0,0.25), inset 0 -6px 8px -8px rgba(0,0,0,0.25);
+}
+.doc-page-break > .doc-page-num {
+  position: absolute;
+  right: calc(-1 * var(--page-pad-x, 3.5rem) + 6px);
+  top: 2px;
+  font-size: 10px;
+  color: var(--ink-faint);
+  background: var(--bg);
+  padding: 1px 5px;
+  border-radius: 3px;
+  letter-spacing: 0.02em;
+}
+/* Header / footer band shown on the paper (per rendered page). */
+.doc-hf-band {
+  position: absolute;
+  left: 0; right: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 11px;
+  color: var(--ink-faint);
+  pointer-events: none;
+  z-index: 1;
+  padding: 0 2px;
+}
+.doc-hf-band > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.doc-hf-band > span.hf-center { text-align: center; }
+.doc-hf-band > span.hf-right  { text-align: right; }
+
+/* ============================================================================
+ * P5 — Live table of contents node (auto-refreshes from headings)
+ * ========================================================================== */
+.tiptap .toc-block {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin: 1rem 0;
+  background: var(--bg-elev-2);
+  user-select: none;
+}
+.tiptap .toc-block.ProseMirror-selectednode { outline: 2px solid var(--accent); outline-offset: 1px; }
+.tiptap .toc-block .toc-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  margin: 0 0 8px;
+}
+.tiptap .toc-block .toc-entry {
+  display: block;
+  color: var(--ink-muted);
+  text-decoration: none;
+  padding: 2px 0;
+  font-size: 0.9em;
+  cursor: pointer;
+}
+.tiptap .toc-block .toc-entry:hover { color: var(--accent); text-decoration: underline; }
+.tiptap .toc-block .toc-empty { color: var(--ink-faint); font-style: italic; font-size: 0.85em; margin: 0; }

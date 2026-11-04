@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+    <!-- PWA / Android -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- theme-color tracks the warm ivory canvas (light) and warm espresso
+         (dark) so the mobile chrome agrees with LocalFirst's warm palette. -->
+    <meta name="theme-color" content="#F8FAFC" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0B1120" media="(prefers-color-scheme: dark)" />
+
+    <!-- Primary Meta -->
+    <title>LocalFirst</title>
+    <meta name="application-name" content="LocalFirst" />
+    <meta name="description" content="LocalFirst — a warm, real-time collaborative office suite: documents, spreadsheets, slides and whiteboards." />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="LocalFirst" />
+    <meta property="og:description" content="LocalFirst — a warm, real-time collaborative office suite: documents, spreadsheets, slides and whiteboards." />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- Twitter / X card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="LocalFirst" />
+    <meta name="twitter:description" content="LocalFirst — a warm, real-time collaborative office suite: documents, spreadsheets, slides and whiteboards." />
+    <meta name="twitter:image" content="/og-image.png" />
+
+    <!--
+      Fonts: LocalFirst's display/UI/document/mono quartet (Bricolage Grotesque ·
+      Schibsted Grotesk · Fraunces · JetBrains Mono) is self-hosted via
+      @fontsource and imported at the top of src/design/tokens.css — never
+      fetched from Google at runtime, so a self-host install leaks no IP and
+      stays air-gappable. See src/design/DESIGN.md.
+    -->
+
+    <!-- Early theme boot — resolve the persisted theme (or OS preference) before
+         first paint so there is no light↔dark flash. Mirrors useTheme.js. -->
+    <script>
+      (function () {
+        try {
+          // Configure font URLs before any SDK module executes.
+          window.EXCALIDRAW_ASSET_PATH = new URL('%MODE%' === 'development' ? '/node_modules/@excalidraw/excalidraw/dist/prod/' : '/assets/excalidraw/', window.location.origin).href;
+          // LocalFirst defaults to LIGHT out of the box; System/Dark are opt-in.
+          var t = localStorage.getItem('localfirst.theme') || localStorage.getItem('diwan.theme') || localStorage.getItem('vulos.theme') || 'light';
+          if (t === 'system') {
+            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          } else if (t !== 'dark') {
+            t = 'light';
+          }
+          document.documentElement.setAttribute('data-theme', t);
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- Service-worker registration + cloud↔LAN endpoint failover are wired in
+         src/lib/endpoints/offlineBootstrap.js (imported from src/main.tsx). -->
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,1081 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LocalFirst docs</title>
+<meta name="description" content="LocalFirst documentation — getting started, architecture, collaboration, configuration, API, self-hosting, deploy, threat model and more.">
+  <link rel="canonical" href="https://vulos.org/projects/diwan/docs.html">
+  <meta name="color-scheme" content="dark light">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="LocalFirst">
+  <meta property="og:title" content="LocalFirst docs">
+  <meta property="og:description" content="LocalFirst documentation — getting started, architecture, collaboration, configuration, API, self-hosting, deploy, threat model and more.">
+  <meta property="og:url" content="https://vulos.org/projects/diwan/docs.html">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="LocalFirst docs">
+  <meta name="twitter:description" content="LocalFirst documentation — getting started, architecture, collaboration, configuration, API, self-hosting, deploy, threat model and more.">
+  <meta property="og:image" content="https://vulos.org/projects/diwan/assets/og-card.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="LocalFirst docs — LocalFirst documentation — getting started, architecture, collaboration, configuration, API, self-hosting, deploy, threat model and more.">
+  <meta name="twitter:image" content="https://vulos.org/projects/diwan/assets/og-card.png">
+<meta name="theme-color" content="#FBF7F1">
+<link rel="icon" href="./assets/localfirst-mark.svg">
+<link rel="preload" href="./assets/fonts/bricolage-grotesque-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="./assets/fonts/schibsted-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<script>
+  (function () {
+    // Marks the document as script-capable before first paint, so the mobile
+    // header can tell "no JS" (tiered link drop) from "JS ready" (real menu)
+    // with zero flash — see .navtoggle / .navlinks in the stylesheet below.
+    document.documentElement.classList.add('js');
+    try {
+      var s = localStorage.getItem('localfirst.site-theme');
+      var t = s || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', t);
+    } catch (e) { document.documentElement.setAttribute('data-theme', 'light'); }
+  })();
+</script>
+<style>
+/* ══════════════════════════════════════════════════════════════════════════
+   LocalFirst — docs viewer
+   Same "Warm Workshop" theme as site/index.html (src/design/tokens.css):
+   warm ivory paper, ember terracotta, exactly one accent, soft geometry.
+   Fonts are vendored locally — nothing is fetched at runtime.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@font-face{font-family:'Bricolage Grotesque Variable';font-style:normal;font-display:swap;font-weight:200 800;
+  src:url(./assets/fonts/bricolage-grotesque-latin-opsz-normal.woff2) format('woff2-variations')}
+@font-face{font-family:'Fraunces Variable';font-style:normal;font-display:swap;font-weight:100 900;
+  src:url(./assets/fonts/fraunces-latin-opsz-normal.woff2) format('woff2-variations')}
+@font-face{font-family:'Schibsted Grotesk Variable';font-style:normal;font-display:swap;font-weight:400 900;
+  src:url(./assets/fonts/schibsted-grotesk-latin-wght-normal.woff2) format('woff2-variations')}
+@font-face{font-family:'JetBrains Mono Variable';font-style:normal;font-display:swap;font-weight:100 800;
+  src:url(./assets/fonts/jetbrains-mono-latin-wght-normal.woff2) format('woff2-variations')}
+
+*,*::before,*::after{box-sizing:border-box}
+
+:root{
+  /* ── Ember: the one accent ───────────────────────────────────────────── */
+  --ember-500:#E15A31; --ember-600:#D0471F; --ember-700:#AE3917;
+  --accent:var(--ember-600); --accent-hover:var(--ember-700);
+  --accent-tint:#FBEADF; --accent-tint-2:#F7D8C6;
+  --teal:#0E8B86;
+
+  /* ── Warm paper surfaces ─────────────────────────────────────────────── */
+  --canvas:#FBF7F1; --paper:#FFFFFF; --sand:#F3ECE0; --sunk:#EDE6D9;
+  --ink:#2A2723; --ink-muted:#6B655C; --ink-faint:#8B8378; --ink-ghost:#BBB2A6;
+  --line:#ECE4D6; --line-strong:#DFD6C6; --line-emph:#CDC2AF;
+
+  /* ── Per-surface tints, straight from the app rail ───────────────────── */
+  --docs:#3B6FD6; --sheets:#1E9E57; --slides:#D69314; --pdf:#D6455C; --board:#7B5BD1;
+
+  /* ── Warm elevation: the paper rests, it doesn't float ───────────────── */
+  --elev-1:0 1px 1px rgba(74,52,30,.05), 0 2px 4px -1px rgba(74,52,30,.07);
+  --elev-2:0 1px 2px rgba(74,52,30,.06), 0 6px 16px -4px rgba(74,52,30,.12);
+  --elev-3:0 2px 6px rgba(60,40,20,.08), 0 24px 48px -12px rgba(60,40,20,.26);
+
+  --sans:'Schibsted Grotesk Variable',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --display:'Bricolage Grotesque Variable','Schibsted Grotesk Variable',system-ui,sans-serif;
+  --serif:'Fraunces Variable','Iowan Old Style',Charter,Cambria,Georgia,serif;
+  --mono:'JetBrains Mono Variable',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --arabic:'SF Arabic','Geeza Pro','Noto Naskh Arabic',Amiri,'Traditional Arabic','Segoe UI',serif;
+
+  --grain:.04; --grain-blend:multiply;
+  --max:1360px;
+  --ease:cubic-bezier(.16,1,.3,1);
+  color-scheme:light;
+}
+
+[data-theme="dark"]{
+  --accent:var(--ember-600); --accent-hover:var(--ember-500);
+  --accent-tint:#2E1C12; --accent-tint-2:#3E2417;
+  --teal:#2CB5AE;
+
+  --canvas:#17130E; --paper:#201B15; --sand:#2A241C; --sunk:#120F0A;
+  --ink:#F1EBE0; --ink-muted:#C3BAAC; --ink-faint:#8E8677; --ink-ghost:#6A6358;
+  --line:#2E2820; --line-strong:#3A332A; --line-emph:#4A4236;
+
+  --docs:#6F9FE6; --sheets:#4FC486; --slides:#E9B84A; --pdf:#EC7183; --board:#A487E0;
+
+  --elev-1:0 1px 2px rgba(0,0,0,.40), 0 1px 3px rgba(0,0,0,.30);
+  --elev-2:0 4px 14px -2px rgba(0,0,0,.55), 0 2px 5px -2px rgba(0,0,0,.40);
+  --elev-3:0 20px 44px -12px rgba(0,0,0,.70), 0 6px 16px -8px rgba(0,0,0,.45);
+
+  --grain:.022; --grain-blend:screen;
+  color-scheme:dark;
+}
+/* On the warm dark canvas the ember needs to brighten to stay legible as text. */
+[data-theme="dark"] .accent-text{color:#FF8759}
+
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--canvas);color:var(--ink);
+  font-family:var(--sans);font-size:16.5px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  /* clip, not hidden. Commit 51549cf claimed hidden was killing the sticky
+     rail — overflow-x:hidden forcing overflow-y:auto, making body a scroll
+     container. That rationale is wrong: mutating this back to hidden leaves
+     the rail pinned. What actually governs pinning is position:sticky on
+     .docs-rail; set that to static and the rail lands at -2897.
+     clip is still the right value, for the reason clip exists: hidden makes
+     the box a scroll container, so programmatic scrolling and anchor jumps
+     can shift content sideways into an area with no scrollbar to bring it
+     back. clip does not. Either way this only hides sideways bleed rather
+     than fixing it, which is why scripts/check-render.mjs measures overflow
+     geometrically instead of trusting scrollWidth here. */
+  overflow-x:clip;
+}
+/* A fine paper grain over everything — printed matter, not a screen. */
+body::after{
+  content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
+  opacity:var(--grain);mix-blend-mode:var(--grain-blend);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+::selection{background:color-mix(in srgb,var(--accent) 24%,transparent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+
+.wrap{max-width:var(--max);margin:0 auto;padding:0 28px}
+.eyebrow{
+  font-family:var(--mono);font-size:12px;font-weight:500;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);
+}
+
+/* ══ Header — identical chrome to the landing page ═════════════════════════ */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  background:color-mix(in srgb,var(--canvas) 86%,transparent);
+  backdrop-filter:saturate(1.4) blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.bar{display:flex;align-items:center;gap:16px;height:62px;max-width:var(--max);margin:0 auto;padding:0 28px}
+/* Adding the mobile nav toggle to the same row leaves it one control tighter
+   than the header was designed for at the very narrowest phones. Tighten the
+   row's own gap and padding there rather than shrink any control below its
+   44px tap target. */
+@media(max-width:360px){.bar{gap:9px;padding:0 18px}}
+.brand{display:flex;align-items:center;gap:11px;font-family:var(--display);font-weight:600;font-size:19.5px;letter-spacing:-.02em}
+/* The iwan is a flat glyph on transparency — no tile, so no shadow. */
+.brand .tile{width:30px;height:30px;flex:none}
+.brand .ar{font-family:var(--arabic);font-size:15.5px;color:var(--ink-ghost);font-weight:400;letter-spacing:0;padding-bottom:2px}
+.spacer{flex:1}
+.navlinks{display:flex;align-items:center;gap:26px}
+.navlinks a{font-size:14.5px;font-weight:500;color:var(--ink-muted);transition:color .18s}
+.navlinks a:hover,.navlinks a[aria-current="page"]{color:var(--accent)}
+/* GitHub: the mark alone in the bar, so the anchor carries the name. The word
+   comes back inside the mobile disclosure panel, where a lone glyph in a
+   column of words would read as a broken row. */
+.navlinks a.gh{display:inline-flex;align-items:center;gap:10px}
+.navlinks a.gh svg{display:block;flex:none}
+.navlinks a.gh .lbl{display:none}
+.iconbtn.navtoggle{display:none} /* beats .iconbtn{display:grid} on specificity, not source order */
+.navtoggle .icon-close{display:none}
+.navtoggle[aria-expanded="true"] .icon-menu{display:none}
+.navtoggle[aria-expanded="true"] .icon-close{display:block}
+
+/* ══ Mobile header nav ═════════════════════════════════════════════════════
+   Same treatment as site/index.html, which shares this header verbatim.
+   No JS: tier the drops — Surfaces / Collaboration / Install (anchors back
+   on the landing page) go first, since from here they have no scroll-to
+   fallback of their own. Docs and GitHub stay inline.
+   With JS: a real disclosure button restores the full nav in a panel. */
+@media(max-width:920px){
+  .navlinks{display:flex;gap:16px}
+  .navlinks a.anchor{display:none}
+
+  html.js .navtoggle{display:grid}
+  html.js .navlinks{
+    display:none;position:absolute;left:0;right:0;top:100%;
+    flex-direction:column;align-items:stretch;gap:0;
+    background:var(--paper);border-bottom:1px solid var(--line);
+    box-shadow:var(--elev-2);padding:6px 28px 18px;
+  }
+  html.js .navlinks a{padding:14px 2px;font-size:15.5px;border-top:1px solid var(--line)}
+  html.js .navlinks a:first-child{border-top:0}
+  html.js .navlinks a.anchor{display:block}
+  html.js .navlinks a.gh .lbl{display:inline}
+  html.js .navlinks[data-open="true"]{display:flex}
+}
+@media(max-width:400px){.brand .ar{display:none}}
+
+.iconbtn{
+  width:34px;height:34px;display:grid;place-items:center;flex:none;cursor:pointer;
+  background:transparent;border:1px solid var(--line-strong);border-radius:9px;
+  color:var(--ink-muted);transition:border-color .18s,color .18s,background .18s;
+}
+.iconbtn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-tint)}
+.iconbtn svg{width:16px;height:16px}
+[data-theme="light"] .moon,[data-theme="dark"] .sun{display:none}
+@media(max-width:768px){.iconbtn{width:44px;height:44px}}
+
+.vulos-badge{
+  display:inline-flex;align-items:center;gap:8px;padding:6px 12px;
+  border:1px solid var(--line-strong);border-radius:999px;
+  font-size:12.5px;color:var(--ink-muted);transition:border-color .18s,color .18s;
+}
+.vulos-badge:hover{border-color:var(--accent);color:var(--ink)}
+.vulos-badge img{width:15px;height:15px;border-radius:4px}
+@media(max-width:640px){.vulos-badge span{display:none}}
+@media(max-width:768px){.vulos-badge{min-height:44px;min-width:44px;justify-content:center}}
+
+/* ══ Docs shell ═════════════════════════════════════════════════════════════ */
+/* Chapters | prose | on-this-page. This was a 1160px two-column shell centred
+   on the page, which left the chapter rail floating ~380px in from the edge of
+   a wide display with dead space beside it, and gave the prose a narrower
+   column than the window could easily afford. minmax(0,1fr) on the prose,
+   not 1fr: a grid child defaults to min-width:auto, so a wide <pre> or table
+   would push the whole page sideways. */
+.docs-shell{
+  display:grid;grid-template-columns:262px minmax(0,1fr) 210px;gap:40px;
+  /* Horizontal padding must be restated: this is .wrap's own selector-mate and
+     a padding shorthand here would otherwise zero out .wrap's 28px gutter,
+     which is invisible while the max-width centres the page and only shows up
+     as edge-to-edge text once the viewport is narrower than --max. */
+  align-items:start;padding:40px 28px 84px;
+}
+@media(max-width:480px){.docs-shell{padding-left:18px;padding-right:18px}}
+@media(max-width:1200px){.docs-shell{grid-template-columns:246px minmax(0,1fr);gap:32px}.docs-toc{display:none}}
+@media(max-width:860px){.docs-shell{grid-template-columns:minmax(0,1fr);padding-top:28px;gap:24px}}
+
+.docs-rail{
+  background:var(--paper);border:1px solid var(--line);border-radius:12px;
+  padding:8px;box-shadow:var(--elev-1);position:sticky;top:82px;
+  max-height:calc(100vh - 104px);overflow-y:auto;
+}
+/* Below 860px the fifteen chapters would push the article most of a screen
+   down, so the rail collapses to one sticky bar that opens on demand. */
+.rail-toggle{display:none}
+@media(max-width:860px){
+  .docs-rail{
+    position:sticky;top:64px;z-index:40;padding:6px;max-height:none;
+  }
+  .docs-rail .rail-label{display:none}
+  .rail-toggle{
+    display:flex;align-items:center;gap:10px;width:100%;
+    background:transparent;border:0;border-radius:9px;cursor:pointer;
+    padding:12px;text-align:left;color:var(--ink);
+    font-family:var(--sans);font-size:15px;font-weight:600;
+  }
+  .rail-toggle::before{
+    content:"Chapter";font-family:var(--mono);font-size:12px;font-weight:500;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--ink-ghost);
+    flex:0 0 auto;
+  }
+  .rail-toggle-cur{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rail-toggle-chev{
+    flex:0 0 auto;width:9px;height:9px;border-right:2px solid var(--ink-faint);
+    border-bottom:2px solid var(--ink-faint);transform:rotate(45deg) translate(-2px,-2px);
+    transition:transform .2s var(--ease);
+  }
+  .rail-toggle[aria-expanded="true"] .rail-toggle-chev{transform:rotate(225deg) translate(-2px,-2px)}
+  .docs-rail nav{display:none;max-height:min(60vh,420px);overflow-y:auto;padding-top:4px}
+  .docs-rail.open nav{display:block}
+}
+@media(max-width:860px) and (prefers-reduced-motion:reduce){
+  .rail-toggle-chev{transition:none}
+}
+.rail-label{
+  font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-ghost);padding:12px 12px 8px;
+}
+.drow{
+  display:block;padding:11px 12px;border-radius:9px;position:relative;
+  color:var(--ink-muted);font-family:var(--sans);font-size:14.5px;font-weight:500;
+  transition:background .18s,color .18s;
+}
+.drow:hover{background:var(--sand);color:var(--ink)}
+.drow.active{background:var(--accent-tint);color:var(--ink);font-weight:600}
+.drow.active::before{
+  content:"";position:absolute;left:0;top:7px;bottom:7px;width:3px;
+  border-radius:0 3px 3px 0;background:var(--accent);
+}
+
+.docs-main{min-width:0}
+
+/* On this page — built from the headings each chapter actually rendered. */
+.docs-toc{position:sticky;top:82px;max-height:calc(100vh - 104px);overflow-y:auto}
+.docs-toc .label{
+  font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-ghost);padding:0 0 10px 12px;
+}
+.docs-toc a{
+  display:block;padding:5px 12px;font-size:13px;line-height:1.45;color:var(--ink-faint);
+  border-left:2px solid var(--line);transition:color .18s,border-color .18s;
+}
+.docs-toc a:hover{color:var(--ink);border-left-color:var(--line-emph)}
+.docs-toc a.lvl3{padding-left:24px;font-size:12.5px}
+.docs-toc a[aria-current=true]{color:var(--ink);border-left-color:var(--accent);font-weight:600}
+.docs-toc .empty{padding:5px 12px;font-size:12.5px;color:var(--ink-faint)}
+.docs-crumb{margin:0 0 8px}
+.docs-error{
+  color:var(--pdf);background:var(--accent-tint);border:1px solid var(--accent-tint-2);
+  padding:14px 16px;border-radius:10px;font-size:14.5px;
+}
+
+/* ══ Markdown typography ════════════════════════════════════════════════════ */
+.markdown{
+  font-size:16.5px;color:var(--ink);
+  /* overflow-wrap is inherited, so this covers plain prose too — changelog/config
+     entries carry long unbroken runs with no space to wrap at, both inside inline
+     <code> (file paths like src/lib/crdt/__tests__/substratePayload.ts) and in
+     plain text (slash-chains like CreateSuggestion/GetSuggestion/UpdateSuggestion,
+     or .docx/.xlsx/.pptx/... format lists). Scoping the rule to `code` alone left
+     those plain-text runs overflowing 149–203px on phones. `anywhere` only kicks
+     in when a token would otherwise overflow, so normal wrapping is untouched. */
+  overflow-wrap:anywhere;
+}
+.markdown>*:first-child{margin-top:0}
+.markdown h1{
+  font-family:var(--display);font-weight:700;letter-spacing:-.03em;line-height:1.12;
+  font-variation-settings:'opsz' 60;
+  font-size:clamp(28px,4vw,38px);margin:.2em 0 .5em;
+  border-bottom:1px solid var(--line);padding-bottom:.35em;
+}
+.markdown h2{
+  font-family:var(--display);font-weight:600;letter-spacing:-.022em;
+  font-variation-settings:'opsz' 32;
+  font-size:24px;margin:1.7em 0 .6em;border-bottom:1px solid var(--line);padding-bottom:.3em;
+}
+.markdown h3{font-family:var(--display);font-weight:600;font-size:18.5px;margin:1.5em 0 .5em;letter-spacing:-.01em}
+.markdown h4{font-family:var(--sans);font-weight:700;font-size:15.5px;margin:1.3em 0 .4em;color:var(--ink)}
+.markdown p,.markdown li{color:var(--ink-muted)}
+.markdown strong{color:var(--ink)}
+.markdown p{margin:0 0 1.05em}
+.markdown ul,.markdown ol{padding-left:1.4em;margin:0 0 1.05em}
+.markdown li{margin:.3em 0}
+.markdown a{color:var(--accent);text-decoration:none;text-underline-offset:3px}
+.markdown a:hover{text-decoration:underline}
+.markdown code{
+  font-family:var(--mono);font-size:.87em;background:var(--sand);color:var(--ink);
+  padding:2px 6px;border-radius:5px;
+  /* overflow-wrap:anywhere inherited from .markdown above (block code below has
+     its own overflow-x:auto scroll container instead). */
+}
+.markdown pre{
+  background:var(--sunk);border:1px solid var(--line-strong);border-radius:12px;
+  padding:16px 18px;overflow-x:auto;box-shadow:var(--elev-1);
+}
+[data-theme="dark"] .markdown pre{background:#0E0B07}
+.markdown pre code{background:none;padding:0;font-size:13.5px;line-height:1.7;color:var(--ink)}
+
+/* ── Code block frame: language chip + copy, one card ─────────────────────── */
+.markdown .code{
+  margin:1.3em 0;border:1px solid var(--line-strong);border-radius:12px;
+  background:var(--sunk);box-shadow:var(--elev-1);overflow:hidden;min-width:0;
+}
+[data-theme="dark"] .markdown .code{background:#0E0B07}
+.markdown .code .bar{
+  display:flex;align-items:center;gap:10px;padding:7px 8px 7px 14px;
+  background:var(--sand);border-bottom:1px solid var(--line-strong);
+}
+.markdown .code .lang{
+  font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-faint);
+}
+.markdown .code .sp{flex:1 1 auto}
+.markdown .code .copy{
+  font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.08em;
+  color:var(--ink-muted);background:transparent;border:1px solid var(--line-emph);
+  border-radius:7px;padding:4px 10px;cursor:pointer;
+  transition:color .15s ease,border-color .15s ease,background .15s ease;
+}
+.markdown .code .copy:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-tint)}
+.markdown .code .copy.done{color:var(--teal);border-color:var(--teal)}
+/* The pre is now the card's body: the frame owns the border, radius and shadow. */
+.markdown .code pre{
+  margin:0;border:none;border-radius:0;box-shadow:none;background:transparent;
+}
+
+/* ── highlight.js — tokens drawn from the same surface tints as the app rail.
+   Kept as variables so one set of .hljs-* rules serves both themes; a second
+   palette under [data-theme="dark"] is all that changes. ─────────────────── */
+:root{
+  --hl-comment:#8B8378; --hl-keyword:#AE3917; --hl-string:#17703F;
+  --hl-number:#8A5C05;  --hl-attr:#2A559E;    --hl-title:#5B3FA0;
+  --hl-meta:#6B655C;    --hl-punct:#6B655C;   --hl-link:#0E8B86;
+  --hl-add:#17703F;     --hl-add-bg:rgba(23,112,63,.10);
+  --hl-del:#B33045;     --hl-del-bg:rgba(179,48,69,.10);
+}
+[data-theme="dark"]{
+  --hl-comment:#8E8677; --hl-keyword:#FF8759; --hl-string:#4FC486;
+  --hl-number:#E9B84A;  --hl-attr:#6F9FE6;    --hl-title:#A487E0;
+  --hl-meta:#C3BAAC;    --hl-punct:#C3BAAC;   --hl-link:#2CB5AE;
+  --hl-add:#4FC486;     --hl-add-bg:rgba(79,196,134,.12);
+  --hl-del:#EC7183;     --hl-del-bg:rgba(236,113,131,.13);
+}
+.markdown .hljs{color:var(--ink);background:transparent}
+.markdown .hljs-comment,.markdown .hljs-quote{color:var(--hl-comment);font-style:italic}
+.markdown .hljs-keyword,.markdown .hljs-selector-tag,.markdown .hljs-literal,
+.markdown .hljs-section,.markdown .hljs-doctag,.markdown .hljs-name,
+.markdown .hljs-tag,.markdown .hljs-type{color:var(--hl-keyword)}
+.markdown .hljs-string,.markdown .hljs-regexp,.markdown .hljs-symbol{color:var(--hl-string)}
+.markdown .hljs-number,.markdown .hljs-bullet,.markdown .hljs-char.escape_,
+.markdown .hljs-selector-pseudo{color:var(--hl-number)}
+.markdown .hljs-attr,.markdown .hljs-attribute,.markdown .hljs-property,
+.markdown .hljs-variable,.markdown .hljs-template-variable,
+.markdown .hljs-selector-attr,.markdown .hljs-selector-id,
+.markdown .hljs-selector-class{color:var(--hl-attr)}
+.markdown .hljs-title,.markdown .hljs-title.class_,.markdown .hljs-title.function_,
+.markdown .hljs-function,.markdown .hljs-built_in{color:var(--hl-title)}
+.markdown .hljs-meta,.markdown .hljs-meta .hljs-keyword,
+.markdown .hljs-meta .hljs-string{color:var(--hl-meta)}
+.markdown .hljs-punctuation,.markdown .hljs-operator,
+.markdown .hljs-params,.markdown .hljs-subst{color:var(--hl-punct)}
+.markdown .hljs-link{color:var(--hl-link);text-decoration:underline;text-underline-offset:2px}
+.markdown .hljs-addition{color:var(--hl-add);background:var(--hl-add-bg);display:inline-block;width:100%}
+.markdown .hljs-deletion{color:var(--hl-del);background:var(--hl-del-bg);display:inline-block;width:100%}
+.markdown .hljs-emphasis{font-style:italic}
+.markdown .hljs-strong{font-weight:600}
+.markdown blockquote{
+  margin:1.1em 0;padding:.5em 1.1em;border-left:3px solid var(--accent);
+  background:var(--accent-tint);color:var(--ink-muted);border-radius:0 8px 8px 0;
+}
+.markdown blockquote p:last-child{margin-bottom:0}
+.markdown table{border-collapse:collapse;width:100%;margin:1.3em 0;font-size:14.5px;display:block;overflow-x:auto}
+.markdown th,.markdown td{border:1px solid var(--line-strong);padding:9px 13px;text-align:left;
+  /* .markdown sets overflow-wrap:anywhere and cells inherit it, which let the
+     browser satisfy a narrow viewport by breaking words instead of using the
+     scroll box this table already has: "Requirement" came apart as "Requireme
+     / nt" on a phone. Back to normal wrapping here, so a column is at least as
+     wide as its longest word and the table pans instead of hyphenating itself. */
+  overflow-wrap:normal;word-break:normal}
+.markdown th{background:var(--sand);font-weight:600;color:var(--ink);font-family:var(--display)}
+.markdown td{color:var(--ink-muted)}
+.markdown img{border-radius:10px;margin:1.1em 0;border:1px solid var(--line-strong);box-shadow:var(--elev-1)}
+.markdown hr{border:none;border-top:1px solid var(--line);margin:2.2em 0}
+/* The diagram scrolls sideways inside this box rather than being scaled down to
+   fit it. mermaid's useMaxWidth put a max-width on the svg equal to its natural
+   width, so the browser shrank the whole drawing — text included — to whatever
+   the column allowed: the Component Map is 925px of drawing, which at 390px
+   meant a scale of 0.34 and a 15px label rendering at 5px. The scroll box was
+   already here and could never scroll, because the svg had been made to fit.
+   min-width:0 keeps it from claiming the drawing's width as its own floor, the
+   grid child default that would push the whole page sideways instead. */
+.markdown .mermaid{
+  background:var(--paper);border:1px solid var(--line);border-radius:12px;
+  padding:20px;margin:1.3em 0;overflow-x:auto;box-shadow:var(--elev-1);
+  min-width:0;overscroll-behavior-x:contain;
+  /* Centre a diagram narrower than the box, but never centre one that is wider.
+     text-align:center and margin-inline:auto both centre by overhanging BOTH
+     edges, and the overhang past the left edge sits before the scroll origin,
+     so it cannot be scrolled back to — at 390px that left two thirds of the
+     Component Map permanently unreachable. "safe center" degrades to flex-start
+     exactly when centring would overflow; the unprefixed declaration before it
+     is the fallback for engines that drop the safe keyword. */
+  display:flex;justify-content:flex-start;justify-content:safe center;
+}
+.markdown .mermaid svg{max-width:none;height:auto;flex:0 0 auto}
+/* A diagram wider than its box is only obviously pannable if the scrollbar is
+   visible, and the overlay scrollbars macOS defaults to are not. */
+.markdown .mermaid::-webkit-scrollbar{height:10px}
+.markdown .mermaid::-webkit-scrollbar-thumb{background:var(--line-emph);border-radius:6px}
+.markdown .mermaid::-webkit-scrollbar-track{background:transparent}
+
+/* The Expand control sits on the card rather than after it, so it reads as
+   belonging to the diagram. The wrapper exists only to give it something
+   positioned to anchor to; the card keeps its own margins. */
+.mermaid-wrap{position:relative}
+.mermaid-wrap > .mermaid{margin-bottom:1.3em}
+.mermaid-open{
+  position:absolute;top:12px;right:12px;z-index:1;
+  font:600 12px/1 var(--sans);letter-spacing:.02em;color:var(--ink-muted);
+  background:var(--paper);border:1px solid var(--line-strong);border-radius:999px;
+  padding:7px 13px;cursor:pointer;box-shadow:var(--elev-1);
+  transition:color .15s ease,border-color .15s ease;
+}
+.mermaid-open:hover,.mermaid-open:focus-visible{color:var(--ink);border-color:var(--ink-muted)}
+
+.diagram-dialog{
+  position:fixed;border:none;background:transparent;padding:0;
+  width:min(96vw,1600px);max-width:96vw;max-height:92vh;
+}
+.diagram-dialog::backdrop{background:rgba(12,10,8,.72)}
+.diagram-stage{
+  background:var(--paper);border:1px solid var(--line-strong);border-radius:14px;
+  padding:26px;overflow:auto;max-height:82vh;box-shadow:var(--elev-2,0 24px 60px rgba(0,0,0,.3));
+  display:flex;justify-content:flex-start;justify-content:safe center;
+}
+/* Same reason as the card: the drawing keeps its natural size. At this width
+   it fits outright, which is the whole point of the control. */
+.diagram-stage svg{max-width:none;height:auto;flex:0 0 auto}
+/* Anchored to the stage rather than floating under it: centred below, the pill
+   landed on top of the page's own copy of the diagram showing through the
+   backdrop, and read as part of the page instead of part of the dialog. */
+.diagram-dialog form{position:absolute;top:12px;right:12px;margin:0}
+.diagram-close{
+  font:600 12px/1 var(--sans);letter-spacing:.02em;color:var(--paper);
+  background:var(--ink);border:1px solid var(--ink);border-radius:999px;
+  padding:9px 16px;cursor:pointer;
+}
+
+/* ══ Footer ═════════════════════════════════════════════════════════════════ */
+.foot{border-top:1px solid var(--line);padding:40px 0 60px}
+.foot .row{display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:space-between}
+.foot .links{display:flex;flex-wrap:wrap;gap:22px}
+.foot .links a{font-size:14.5px;color:var(--ink-muted)}
+.foot .links a:hover{color:var(--accent)}
+@media(max-width:768px){.foot .links a{padding:12px 4px;margin:-12px -4px}}
+.foot .set{
+  margin:26px 0 0;padding-top:22px;border-top:1px solid var(--line);
+  font-family:var(--mono);font-size:12px;line-height:1.9;letter-spacing:.05em;
+  color:var(--ink-ghost);max-width:80ch;
+}
+
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *{transition-duration:.001ms !important;animation-duration:.001ms !important}
+}
+
+  /* ── Vulos suite chrome — identical on every product landing ───────────────
+     Two elements, and only two: a logo-only home button in the top bar, and
+     one line in the footer. Deliberately free of repo variables so the block
+     is byte-identical across the suite and can be diffed as one thing. */
+  .vulos-home { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 9px; flex: 0 0 auto; opacity: .72; transition: opacity .15s ease, transform .15s ease; }
+  .vulos-home:hover, .vulos-home:focus-visible { opacity: 1; transform: translateY(-1px); }
+  .vulos-home img { display: block; width: 22px; height: 22px; border-radius: 6px; }
+  .vulos-foot { display: inline-flex; align-items: center; gap: 9px; font-size: 13.5px; line-height: 1.45; text-decoration: none; color: inherit; opacity: .85; transition: opacity .15s ease; }
+  .vulos-foot:hover { opacity: 1; text-decoration: none; }
+  .vulos-foot img { display: block; width: 18px; height: 18px; border-radius: 5px; flex: 0 0 auto; }
+
+  /* Dark-ground correction for the mark above. vulos-logo.png is flat #2E383A
+     on transparency — ink drawn for paper — so composited on this surface it
+     measures about 1.3:1 and reads as a smudge, not as a dimmed logo. The
+     artwork carries its whole shape in the alpha channel, so brightness(0)
+     invert(1) recolours it to the surface's foreground with the glyph intact,
+     and the opacity holds it at the same secondary weight the light theme
+     gives it. Styling only: the chrome markup stays byte-identical suite-wide. */
+  :root[data-theme="dark"] .vulos-home img,
+  :root[data-theme="dark"] .vulos-foot img { filter: brightness(0) invert(1); opacity: .66; }
+</style>
+</head>
+<body>
+
+<!-- ═══ Header ════════════════════════════════════════════════════════════ -->
+<header class="topbar">
+  <div class="bar">
+    <a class="brand" href="./index.html">
+      <span class="tile"><img src="./assets/localfirst-mark.svg" alt=""></span>LocalFirst
+      <span class="ar" lang="ar" dir="rtl">ديوان</span>
+    </a>
+    <div class="spacer"></div>
+    <nav class="navlinks" id="navlinks">
+      <a class="anchor" href="./index.html#surfaces">Surfaces</a>
+      <a class="anchor" href="./index.html#collaboration">Collaboration</a>
+      <a class="anchor" href="./index.html#install">Install</a>
+      <a href="./docs.html" aria-current="page">Docs</a>
+      <a class="gh" href="https://github.com/vul-os/diwan" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg><span class="lbl">GitHub</span></a>
+    </nav>
+    <button class="iconbtn navtoggle" id="navtoggle" type="button" aria-expanded="false" aria-controls="navlinks" aria-label="Open menu">
+      <svg class="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <button class="iconbtn" id="theme" type="button" aria-label="Toggle light and dark theme" title="Toggle theme">
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg>
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+    <a class="vulos-home" href="https://vulos.org" target="_blank" rel="noopener" title="Vulos — open, self-hostable software" aria-label="Vulos — open, self-hostable software"><img src="./assets/vulos-logo.png" alt="" width="22" height="22"></a>
+  </div>
+</header>
+
+<main>
+<div class="wrap docs-shell">
+  <aside class="docs-rail" aria-label="Documentation chapters">
+    <div class="rail-label">LocalFirst docs</div>
+    <button class="rail-toggle" id="railToggle" type="button" aria-expanded="false" aria-controls="railNav">
+      <span class="rail-toggle-cur" id="railToggleCur">Chapters</span>
+      <span class="rail-toggle-chev" aria-hidden="true"></span>
+    </button>
+    <nav id="railNav" aria-label="Chapters">
+      <a class="drow" data-slug="getting-started" href="#getting-started">Getting started</a>
+      <a class="drow" data-slug="install" href="#install">Install</a>
+      <a class="drow" data-slug="architecture" href="#architecture">Architecture</a>
+      <a class="drow" data-slug="collaboration" href="#collaboration">Collaboration</a>
+      <a class="drow" data-slug="configuration" href="#configuration">Configuration</a>
+      <a class="drow" data-slug="api" href="#api">API</a>
+      <a class="drow" data-slug="self-hosting" href="#self-hosting">Self-hosting</a>
+      <a class="drow" data-slug="user-guide" href="#user-guide">User guide</a>
+      <a class="drow" data-slug="admin-guide" href="#admin-guide">Admin guide</a>
+      <a class="drow" data-slug="deploy" href="#deploy">Deploy</a>
+      <a class="drow" data-slug="threat-model" href="#threat-model">Threat model</a>
+      <a class="drow" data-slug="troubleshooting" href="#troubleshooting">Troubleshooting</a>
+      <a class="drow" data-slug="screenshots" href="#screenshots">Screenshots</a>
+      <a class="drow" data-slug="roadmap" href="#roadmap">Roadmap</a>
+      <a class="drow" data-slug="changelog" href="#changelog">Changelog</a>
+    </nav>
+  </aside>
+  <div class="docs-main">
+    <p class="eyebrow docs-crumb" id="crumb"></p>
+    <article class="markdown" id="content">Loading…</article>
+  </div>
+  <nav class="docs-toc" id="docsToc" aria-label="On this page"></nav>
+</div>
+</main>
+
+<!-- ═══ Footer ════════════════════════════════════════════════════════════ -->
+
+<script src="./assets/vendor/marked.umd.js"></script>
+<script src="./assets/vendor/highlight.min.js"></script>
+<script>
+// The site is served from the repo root; docs render straight from the repo's own markdown.
+const DOCS = [
+  {"slug":"getting-started","title":"Getting started","path":"./docs/getting-started.md"},
+  {"slug":"install","title":"Install","path":"./docs/install.md"},
+  {"slug":"architecture","title":"Architecture","path":"./docs/architecture.md"},
+  {"slug":"collaboration","title":"Collaboration","path":"./docs/collaboration.md"},
+  {"slug":"configuration","title":"Configuration","path":"./docs/configuration.md"},
+  {"slug":"api","title":"API","path":"./docs/api.md"},
+  {"slug":"self-hosting","title":"Self-hosting","path":"./docs/self-hosting.md"},
+  {"slug":"user-guide","title":"User guide","path":"./docs/user-guide.md"},
+  {"slug":"admin-guide","title":"Admin guide","path":"./docs/admin-guide.md"},
+  {"slug":"deploy","title":"Deploy","path":"./docs/deploy.md"},
+  {"slug":"threat-model","title":"Threat model","path":"./docs/threat-model.md"},
+  {"slug":"troubleshooting","title":"Troubleshooting","path":"./docs/troubleshooting.md"},
+  {"slug":"screenshots","title":"Screenshots","path":"./docs/screenshots.md"},
+  {"slug":"roadmap","title":"Roadmap","path":"./docs/roadmap.md"},
+  {"slug":"changelog","title":"Changelog","path":"./docs/changelog.md"}
+];
+const bySlug = Object.fromEntries(DOCS.map(d=>[d.slug,d]));
+const byFile = Object.fromEntries(DOCS.map(d=>[d.path.split('/').pop().toLowerCase(),d]));
+// One docs/ source is published under a different name than it has in the repo,
+// so a cross-doc link written against the repo layout misses byFile by string
+// equality and would leave the site with a 404. Alias it. (Every other page's
+// repo name lowercases to its published name already.)
+byFile['selfhost.md'] = bySlug['self-hosting'];
+// Docs that exist in the repo but are NOT published here (COTURN.md,
+// SECURITY-TESTING.md, TESTING.md, RELEASING.md, SLOs.md, DEPLOY-STATIC.md,
+// SECURITY.md). Send those links to the repo rather than to a page that is not
+// on this site — a dead in-page link reads as a broken site, an outbound one
+// reads as what it is.
+const REPO_BLOB = 'https://github.com/vul-os/diwan/blob/main/';
+const UNPUBLISHED = {
+  'coturn.md': 'docs/COTURN.md',
+  'security-testing.md': 'docs/SECURITY-TESTING.md',
+  'testing.md': 'docs/TESTING.md',
+  'releasing.md': 'docs/RELEASING.md',
+  'slos.md': 'docs/SLOs.md',
+  'deploy-static.md': 'docs/DEPLOY-STATIC.md',
+  'security.md': 'SECURITY.md',
+};
+const content = document.getElementById('content');
+const crumb = document.getElementById('crumb');
+
+if (window.marked && marked.setOptions) marked.setOptions({ gfm:true, breaks:false });
+
+/* ── Mermaid: warm-themed, loaded lazily only when a doc actually uses it ──── */
+const MERMAID_FONT = "'Schibsted Grotesk Variable', system-ui, sans-serif";
+/* Node palette per semantic class. The diagram sources name their classes
+   (entry / subject / downstream) but carry no colours, because a colour baked
+   into the markdown cannot follow a theme toggle — which is exactly how these
+   diagrams ended up rendering near-black boxes on light paper. */
+const MERMAID_CLASSES = {
+  /* Strokes are deliberately stronger than the --line-* tokens the prose uses.
+     A rule between paragraphs only has to be found; a node border has to hold a
+     box together against a fill that is a shade or two from the card behind it,
+     and at --line-emph that border measured 1.7:1 in both themes and the boxes
+     read as smudges rather than shapes. */
+  light: [
+    'classDef entry fill:#FBF7F1,stroke:#B3A68D,color:#2A2723',
+    'classDef subject fill:#FBEADF,stroke:#D0471F,color:#8F2F12',
+    'classDef downstream fill:#F3ECE0,stroke:#BFB39B,color:#2A2723',
+  ],
+  dark: [
+    'classDef entry fill:#17130E,stroke:#6F6656,color:#E6DFD3',
+    'classDef subject fill:#AE3917,stroke:#FF8759,color:#FFF1EA',
+    'classDef downstream fill:#2A241C,stroke:#7A7160,color:#F1EBE0',
+  ],
+};
+/* Inject the palette just after the diagram-type line, so the class names the
+   source already uses resolve against the current theme. */
+function withMermaidClasses(src, theme){
+  const defs = MERMAID_CLASSES[theme] || MERMAID_CLASSES.light;
+  const lines = src.split('\n');
+  const i = lines.findIndex(l=>/^\s*(flowchart|graph)\b/.test(l));
+  if (i < 0) return src;
+  return [...lines.slice(0, i+1), ...defs.map(d=>'    '+d), ...lines.slice(i+1)].join('\n');
+}
+const MERMAID_VARS = {
+  light: {
+    background:'#FFFFFF', primaryColor:'#F3ECE0', primaryTextColor:'#2A2723',
+    primaryBorderColor:'#DFD6C6', lineColor:'#8B8378', secondaryColor:'#FBEADF',
+    tertiaryColor:'#FBF7F1', mainBkg:'#F3ECE0', nodeBorder:'#DFD6C6',
+    clusterBkg:'#FBF7F1', clusterBorder:'#ECE4D6', edgeLabelBackground:'#FFFFFF',
+    textColor:'#2A2723', nodeTextColor:'#2A2723', errorBkgColor:'#FBEADF', errorTextColor:'#AE3917',
+  },
+  dark: {
+    background:'#201B15', primaryColor:'#2A241C', primaryTextColor:'#F1EBE0',
+    primaryBorderColor:'#3A332A', lineColor:'#8E8677', secondaryColor:'#2E1C12',
+    tertiaryColor:'#17130E', mainBkg:'#2A241C', nodeBorder:'#3A332A',
+    clusterBkg:'#17130E', clusterBorder:'#2E2820', edgeLabelBackground:'#201B15',
+    textColor:'#F1EBE0', nodeTextColor:'#F1EBE0', errorBkgColor:'#2E1C12', errorTextColor:'#FF8759',
+  },
+};
+function currentTheme(){ return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'; }
+function mermaidConfigFor(theme){
+  return { startOnLoad:false, theme:'base', securityLevel:'loose', fontFamily:MERMAID_FONT,
+    /* useMaxWidth:false is the whole point: with it true mermaid caps the svg at
+       its natural width, the browser scales the drawing down to the column, and
+       the label size below becomes a fiction — 15px measured 5.1px at 390px and
+       3.9px at 320px. False keeps the drawing at its drawn size and lets the
+       .mermaid box scroll instead, so the type is 15px at every width. */
+    flowchart:{ useMaxWidth:false, htmlLabels:true, padding:14, nodeSpacing:44, rankSpacing:56 },
+    themeVariables: Object.assign({ fontFamily:MERMAID_FONT, fontSize:'15px' },
+      MERMAID_VARS[theme] || MERMAID_VARS.light) };
+}
+let mermaidLoadPromise = null;
+function ensureMermaid(){
+  if (mermaidLoadPromise) return mermaidLoadPromise;
+  mermaidLoadPromise = new Promise((resolve, reject)=>{
+    const s = document.createElement('script');
+    s.src = './assets/vendor/mermaid.min.js';
+    s.onload = function(){
+      try { mermaid.initialize(mermaidConfigFor(currentTheme())); resolve(); }
+      catch(e){ reject(e); }
+    };
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  return mermaidLoadPromise;
+}
+/* ── Code blocks ──────────────────────────────────────────────────────────
+   Each fence becomes a card with a language chip and a copy button, and is
+   highlighted in place. A fence whose language has no grammar registered is
+   left as plain text rather than mislabelled — hljs.getLanguage() is the only
+   honest test, since an unhighlighted block is indistinguishable from a
+   highlighted one in the markup alone. */
+function enhanceCode(){
+  content.querySelectorAll('pre > code').forEach(code=>{
+    const pre = code.parentElement;
+    const cls = [...code.classList].find(c=>c.startsWith('language-')) || '';
+    const lang = cls.replace('language-','').toLowerCase();
+    if (lang === 'mermaid') return;                        // handled separately
+    const known = !!(lang && window.hljs && hljs.getLanguage(lang));
+    const box = document.createElement('div');
+    box.className = 'code';
+    box.innerHTML = '<div class="bar"><span class="lang"></span><span class="sp"></span>' +
+                    '<button class="copy" type="button">Copy</button></div>';
+    box.querySelector('.lang').textContent = known ? lang : (lang || 'text');
+    pre.replaceWith(box);
+    box.appendChild(pre);
+    if (window.hljs) {
+      try {
+        if (known) hljs.highlightElement(code);
+        else code.classList.add('hljs');
+      } catch(e){ /* leave the block unhighlighted rather than break the page */ }
+    }
+  });
+  content.querySelectorAll('.code .copy').forEach(btn=>btn.addEventListener('click', async ()=>{
+    try {
+      await navigator.clipboard.writeText(btn.closest('.code').querySelector('code').innerText);
+      btn.textContent='Copied'; btn.classList.add('done');
+      setTimeout(()=>{ btn.textContent='Copy'; btn.classList.remove('done'); }, 1600);
+    } catch(e){ btn.textContent='Ctrl+C'; setTimeout(()=>btn.textContent='Copy', 1600); }
+  }));
+}
+
+async function paintMermaid(){
+  // Turn freshly-parsed ```mermaid fences into diagram containers, keeping the
+  // original source on the node so a later theme toggle can repaint them.
+  content.querySelectorAll('pre > code.language-mermaid').forEach(code=>{
+    const div = document.createElement('div');
+    div.className = 'mermaid';
+    div.dataset.src = code.textContent;
+    div.textContent = code.textContent;
+    code.closest('pre').replaceWith(div);
+  });
+  await repaintMermaid();
+}
+async function repaintMermaid(){
+  const nodes = [...content.querySelectorAll('.mermaid[data-src]')];
+  if (!nodes.length) return;
+  try {
+    await ensureMermaid();
+    mermaid.initialize(mermaidConfigFor(currentTheme()));
+    const theme = currentTheme();
+    nodes.forEach(n=>{ n.removeAttribute('data-processed'); n.removeAttribute('id'); n.textContent = withMermaidClasses(n.dataset.src, theme); });
+    await mermaid.run({ nodes });
+    // A flowchart draws its spine down the middle of its own canvas, so a box
+    // narrower than the drawing opens on the empty left margin and the reader
+    // sees a blank card. Start them looking at the middle instead; both edges
+    // are still reachable, which is the part centring in CSS would have cost.
+    nodes.forEach(n=>{
+      const slack = n.scrollWidth - n.clientWidth;
+      if (slack > 0) n.scrollLeft = Math.round(slack / 2);
+      markExpandable(n, slack > 0);
+    });
+  } catch(e) { console.warn('mermaid', e); }
+}
+
+/* ── Oversized diagrams open full-bleed ───────────────────────────────────
+   Keeping the drawing at its natural size is what fixed the 5px labels, but
+   the Component Map is 925px against a 752px column, so a desktop reader was
+   left panning 215px through a diagram that would fit on their screen twice
+   over. There is no room to widen the column — the third column is the
+   on-page nav — so the diagram borrows the viewport instead, on demand.
+
+   Only diagrams that actually overflow get the affordance; a small one that
+   already fits would gain a control that does nothing. The scroll box stays
+   exactly as it was underneath, so this is additive: with JS off, or if the
+   dialog is unsupported, the reader still gets a pannable 15px diagram. */
+function markExpandable(node, overflows){
+  const existing = node.parentElement?.querySelector(':scope > .mermaid-open');
+  if (!overflows) { existing?.remove(); node.classList.remove('is-expandable'); return; }
+  node.classList.add('is-expandable');
+  if (existing) return;
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'mermaid-open';
+  btn.textContent = 'Expand';
+  btn.setAttribute('aria-label', 'Open this diagram at full size');
+  btn.addEventListener('click', ()=> openDiagram(node));
+  node.insertAdjacentElement('afterend', btn);
+  const wrap = document.createElement('div');
+  wrap.className = 'mermaid-wrap';
+  node.insertAdjacentElement('beforebegin', wrap);
+  wrap.append(node, btn);
+}
+
+let diagramDialog = null;
+function openDiagram(node){
+  if (!diagramDialog){
+    diagramDialog = document.createElement('dialog');
+    diagramDialog.className = 'diagram-dialog';
+    diagramDialog.innerHTML =
+      '<div class="diagram-stage"></div>' +
+      '<form method="dialog"><button class="diagram-close" aria-label="Close diagram">Close</button></form>';
+    document.body.appendChild(diagramDialog);
+    // Clicking the backdrop closes it. The stage is the only child that fills
+    // the dialog, so a click landing on the dialog itself is a backdrop click.
+    diagramDialog.addEventListener('click', e=>{ if (e.target === diagramDialog) diagramDialog.close(); });
+  }
+  const stage = diagramDialog.querySelector('.diagram-stage');
+  const svg = node.querySelector('svg');
+  if (!svg) return;
+  stage.replaceChildren(svg.cloneNode(true));
+  if (typeof diagramDialog.showModal === 'function') diagramDialog.showModal();
+}
+
+/* ── Chapter rail ─────────────────────────────────────────────────────────
+   Below 860px the rail is a disclosure. It carries the current chapter as its
+   own label, so collapsed it still says where you are. */
+const rail = document.querySelector('.docs-rail');
+const railToggle = document.getElementById('railToggle');
+const railToggleCur = document.getElementById('railToggleCur');
+function setRailOpen(open){
+  if(!rail || !railToggle) return;
+  rail.classList.toggle('open', open);
+  railToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+if(railToggle){
+  railToggle.addEventListener('click', function(){
+    setRailOpen(!rail.classList.contains('open'));
+  });
+  // Choosing a chapter closes it again, so the article is not left behind a menu.
+  rail.querySelectorAll('nav a').forEach(function(a){
+    a.addEventListener('click', function(){ setRailOpen(false); });
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && rail.classList.contains('open')){ setRailOpen(false); railToggle.focus(); }
+  });
+}
+
+function setActive(slug){
+  document.querySelectorAll('.docs-rail a').forEach(a=>a.classList.toggle('active', a.dataset.slug===slug));
+  const doc = bySlug[slug];
+  if(railToggleCur && doc) railToggleCur.textContent = doc.title;
+}
+
+async function load(slug){
+  const doc = bySlug[slug] || DOCS[0];
+  setActive(doc.slug);
+  crumb.textContent = doc.title;
+  content.innerHTML = 'Loading…';
+  if (docsToc) docsToc.innerHTML = '';
+  try {
+    const res = await fetch(doc.path, {cache:'no-cache'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const md = await res.text();
+    content.innerHTML = marked.parse(md);
+    enhanceCode();
+    content.querySelectorAll('img').forEach(img=>{
+      const s=img.getAttribute('src')||'';
+      if(/^https?:/i.test(s)) return;
+      const m=s.match(/(?:\.\.\/)*(?:docs\/)?screenshots\/(.+)$/);
+      if(m) img.setAttribute('src','./screenshots/'+m[1]);
+    });
+    // Cross-doc links (e.g. API.md, ../ROADMAP.md#phase-4) become sidebar navigation.
+    content.querySelectorAll('a[href]').forEach(a=>{
+      const h=a.getAttribute('href')||'';
+      if(/^(https?:|#|mailto:)/i.test(h)) return;
+      const m=h.match(/([^\/]+\.md)(#.*)?$/i);
+      if(!m){
+        // A repo-relative pointer at source (e.g. ../backend/storage/*.go).
+        // There is no such file on this site, so send it to the repo.
+        if(/^\.{0,2}\//.test(h)){
+          a.setAttribute('href', REPO_BLOB+h.replace(/^(\.\.\/|\.\/)+/,''));
+          a.target='_blank'; a.rel='noopener';
+        }
+        return;
+      }
+      const name = m[1].toLowerCase();
+      const target = byFile[name];
+      if(target){ a.setAttribute('href','#'+target.slug); return; }
+      const repoPath = UNPUBLISHED[name];
+      if(repoPath){
+        a.setAttribute('href', REPO_BLOB+repoPath+(m[2]||''));
+        a.target='_blank'; a.rel='noopener';
+      }
+    });
+    content.querySelectorAll('a[href^="http"]').forEach(a=>{a.target='_blank';a.rel='noopener';});
+    buildToc();
+    if (content.querySelector('code.language-mermaid')) await paintMermaid();
+    window.scrollTo({top:0});
+  } catch(err){
+    content.innerHTML = '<div class="docs-error">Could not load <code>'+doc.path.split('/').pop()+'</code> — '+err.message+'</div>';
+  }
+}
+
+function current(){ return (location.hash||'').replace('#','') || DOCS[0].slug; }
+/* ── on this page ──────────────────────────────────────────────────────
+   marked emits no heading ids, so anchors are minted here first — without
+   them the rail would have nothing to link to. h2/h3 only: h1 is the
+   chapter title, already shown as the crumb, and h4+ makes the rail longer
+   than the prose it indexes. A chapter with no subheadings says so rather
+   than leaving an unexplained empty column. */
+var docsToc = document.getElementById('docsToc');
+var tocSpy = null;
+
+/* GitHub's rule, character for character: lowercase, drop everything that is
+   not a word character / space / hyphen, then map each REMAINING space to one
+   hyphen. Collapsing runs of whitespace instead (\s+) looks equivalent and is
+   not: "## 8. Import & Export" loses the "&" and keeps the two spaces around
+   it, so GitHub mints "8-import--export" and a \s+ slugifier mints
+   "8-import-export". Every cross-reference in these docs is written against
+   GitHub's anchors, because that is where the markdown is read first — so the
+   one link in USER-GUIDE.md pointing at #8-import--export landed on nothing. */
+function slugifyHeading(text, seen){
+  var base = String(text).toLowerCase().trim()
+    .replace(/[^\w\s-]/g, '').replace(/\s/g, '-') || 'section';
+  var n = seen.get(base) || 0;
+  seen.set(base, n + 1);
+  return n ? base + '-' + n : base;
+}
+
+function buildToc(){
+  if(!docsToc) return;
+  var seen = new Map();
+  content.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach(function(h){
+    if(!h.id) h.id = slugifyHeading(h.textContent, seen);
+  });
+
+  var heads = [].slice.call(content.querySelectorAll('h2,h3'));
+  if(!heads.length){
+    docsToc.innerHTML = '<div class="label">On this page</div>' +
+      '<div class="empty">No sections in this chapter.</div>';
+    return;
+  }
+  docsToc.innerHTML = '<div class="label">On this page</div>' + heads.map(function(h){
+    return '<a href="#" data-id="' + h.id + '"' +
+      (h.tagName === 'H3' ? ' class="lvl3"' : '') + '>' + h.textContent + '</a>';
+  }).join('');
+
+  [].forEach.call(docsToc.querySelectorAll('a[data-id]'), function(a){
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      var el = document.getElementById(a.dataset.id);
+      if(!el) return;
+      var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+      el.scrollIntoView({block:'start', behavior: reduce ? 'auto' : 'smooth'});
+    });
+  });
+
+  if(tocSpy) tocSpy.disconnect();
+  if(!('IntersectionObserver' in window)) return;
+  tocSpy = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(!en.isIntersecting) return;
+      [].forEach.call(docsToc.querySelectorAll('a[data-id]'), function(a){
+        if(a.dataset.id === en.target.id) a.setAttribute('aria-current','true');
+        else a.removeAttribute('aria-current');
+      });
+    });
+  }, {rootMargin:'-80px 0px -70% 0px'});
+  heads.forEach(function(h){ tocSpy.observe(h); });
+}
+
+window.addEventListener('hashchange', ()=>load(current()));
+load(current());
+
+/* ── Theme toggle — same key and behaviour as the landing page ────────────── */
+(function () {
+  var root = document.documentElement;
+  var btn = document.getElementById('theme');
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('localfirst.site-theme', next); } catch (e) {}
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', next === 'dark' ? '#17130E' : '#FBF7F1');
+    repaintMermaid();
+  });
+})();
+
+/* ── Mobile header nav — a real disclosure, not just a hidden bar ─────────── */
+(function () {
+  var navToggle = document.getElementById('navtoggle');
+  var navPanel = document.getElementById('navlinks');
+  if (!navToggle || !navPanel) return;
+  var navFocusables = Array.prototype.slice.call(navPanel.querySelectorAll('a'));
+
+  var navIsOpen = function () { return navToggle.getAttribute('aria-expanded') === 'true'; };
+
+  var closeNav = function (returnFocus) {
+    if (!navIsOpen()) return;
+    navToggle.setAttribute('aria-expanded', 'false');
+    navToggle.setAttribute('aria-label', 'Open menu');
+    navPanel.removeAttribute('data-open');
+    if (returnFocus) navToggle.focus();
+  };
+
+  var openNav = function () {
+    navToggle.setAttribute('aria-expanded', 'true');
+    navToggle.setAttribute('aria-label', 'Close menu');
+    navPanel.setAttribute('data-open', 'true');
+    if (navFocusables[0]) navFocusables[0].focus();
+  };
+
+  navToggle.addEventListener('click', function () {
+    if (navIsOpen()) closeNav(false); else openNav();
+  });
+
+  navPanel.addEventListener('click', function (e) {
+    if (e.target.closest('a')) closeNav(false);
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (!navIsOpen()) return;
+    if (e.key === 'Escape') { closeNav(true); return; }
+    if (e.key === 'Tab' && navFocusables.length) {
+      var first = navFocusables[0], last = navFocusables[navFocusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!navIsOpen()) return;
+    if (navPanel.contains(e.target) || navToggle.contains(e.target)) return;
+    closeNav(false);
+  });
+
+  window.addEventListener('resize', function () {
+    if (window.innerWidth > 920) closeNav(false);
+  });
+})();
+</script>
+</body>
+</html>

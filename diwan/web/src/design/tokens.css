@@ -1,0 +1,204 @@
+/* LocalFirst: semantic design tokens. Fonts are bundled locally for offline use. */
+@import '@fontsource-variable/inter/wght.css';
+@import '@fontsource-variable/inter/wght-italic.css';
+@import '@fontsource-variable/fraunces/opsz.css';
+@import '@fontsource-variable/fraunces/opsz-italic.css';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
+
+:root {
+
+  --indigo-50:  #EEF2FF;
+  --indigo-100: #E0E7FF;
+  --indigo-200: #C7D2FE;
+  --indigo-300: #A5B4FC;
+  --indigo-400: #818CF8;
+  --indigo-500: #6366F1;
+  --indigo-600: #4F46E5;
+  --indigo-700: #4338CA;
+  --indigo-800: #3730A3;
+  --indigo-900: #312E81;
+
+
+  --teal-50:  var(--indigo-50);
+  --teal-100: var(--indigo-100);
+  --teal-200: var(--indigo-200);
+  --teal-300: var(--indigo-300);
+  --teal-400: var(--indigo-400);
+  --teal-500: var(--indigo-500);
+  --teal-600: var(--indigo-600);
+  --teal-700: var(--indigo-700);
+  --teal-800: var(--indigo-800);
+  --teal-900: var(--indigo-900);
+
+
+  --oat-50: #F8FAFC;
+  --oat-100: #F1F5F9;
+  --oat-200: #E2E8F0;
+  --oat-300: #CBD5E1;
+  --oat-400: #94A3B8;
+  --oat-500: #64748B;
+  --oat-600: #475569;
+  --oat-700: #334155;
+  --oat-800: #1E293B;
+  --oat-900: #0F172A;
+
+
+  --bg-base: #F8FAFC;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #F1F5F9;
+  --bg-hover: #EEF2F6;
+  --bg-selected: #EEF2FF;
+  --bg-selected-border: #C7D2FE;
+
+  --paper: #FFFFFF;
+  --paper-2: #F8FAFC;
+  --paper-3: #F1F5F9;
+  --clay: #F1F5F9;
+
+
+  --brand: #4F46E5;
+  --brand-hover: #4338CA;
+  --brand-subtle: #EEF2FF;
+
+
+  --signal-warning: #B45309;
+  --signal-warning-bg: #FFFBEB;
+  --signal-error: #DC2626;
+  --signal-error-bg: #FEF2F2;
+  --signal-success: #15803D;
+  --signal-success-bg: #F0FDF4;
+  --signal-info: #4338CA;
+  --signal-info-bg: #EEF2FF;
+
+
+  --app-docs:      #3B6FD6;
+  --app-docs-bg:   color-mix(in srgb, #3B6FD6 12%, transparent);
+  --app-sheets:    #1E9E57;
+  --app-sheets-bg: color-mix(in srgb, #1E9E57 12%, transparent);
+  --app-slides:    #D69314;
+  --app-slides-bg: color-mix(in srgb, #D69314 14%, transparent);
+  --app-pdf:       #D6455C;
+  --app-pdf-bg:    color-mix(in srgb, #D6455C 12%, transparent);
+  --app-board:     #7B5BD1;
+  --app-board-bg:  color-mix(in srgb, #7B5BD1 13%, transparent);
+
+
+  --bg:        var(--bg-base);
+  --bg-elev-1: var(--bg-surface);
+  --bg-elev-2: var(--bg-elevated);
+  --bg-sunk: #E9EEF5;
+
+  --ink: #0F172A;
+  --ink-muted: #475569;
+  --ink-faint: #64748B;
+  --ink-ghost: #94A3B8;
+  --ink-on-accent: #FFFFFF;
+
+  --line: #E2E8F0;
+  --line-strong: #CBD5E1;
+  --line-emphasis: #94A3B8;
+
+  --accent: #4F46E5;
+  --accent-hover: #4338CA;
+  --accent-press: #3730A3;
+  --accent-tint: #EEF2FF;
+  --accent-tint-2: #E0E7FF;
+  --accent-on-ink: #4F46E5;
+
+  --selection-bg: #C7D2FE;
+  --selection-fg: #1E1B4B;
+
+
+  --font-sans: 'Inter Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: var(--font-sans);
+  --font-serif: 'Fraunces Variable', 'Iowan Old Style', 'Charter',
+                'Source Serif Pro', Cambria, Georgia, serif;
+  --font-mono:  'JetBrains Mono Variable', ui-monospace, 'SF Mono',
+                'Cascadia Code', 'Fira Code', Menlo, Consolas, monospace;
+
+
+  --text-2xs: 0.6875rem;
+  --text-xs:  0.75rem;
+  --text-sm:  0.8125rem;
+  --text-md:  0.875rem;
+  --text-base:1rem;
+  --text-lg:  1.1875rem;
+  --text-xl:  1.5rem;
+  --text-2xl: 2rem;
+  --text-3xl: 2rem;
+
+
+  --tracking-tight:   -0.011em;
+  --tracking-normal:   0em;
+  --tracking-wide:     0.04em;
+  --tracking-wider: 0.08em;
+  --tracking-display: -0.02em;
+
+
+  --leading-tight: 1.2;
+  --leading-snug:  1.35;
+  --leading-body:  1.55;
+  --leading-doc:   1.72;
+
+
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.5rem;
+  --space-6:  2rem;
+  --space-7:  3rem;
+  --space-8:  4rem;
+
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 999px;
+
+
+  --elev-0: none;
+  --elev-1: 0 1px 2px rgb(15 23 42 / .04);
+  --elev-2: 0 4px 16px -4px rgb(15 23 42 / .10);
+  --elev-3: 0 16px 48px -12px rgb(15 23 42 / .18);
+  --elev-focus: 0 0 0 3px color-mix(in srgb, var(--accent) 32%, transparent);
+
+
+  --ease-out:   cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-spring: cubic-bezier(0.16, 1.0, 0.3, 1);
+  --ease-in:    cubic-bezier(0.4, 0, 1, 1);
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 250ms;
+
+  color-scheme: light;
+}
+
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+
+
+:root[data-theme="dark"] {
+ --bg-base:#0B1120;--bg-surface:#111B2E;--bg-elevated:#1C293F;--bg-hover:#23334C;
+ --bg-selected:#23244C;--bg-selected-border:#4C4F89;
+ --paper:#111B2E;--paper-2:#0B1120;--paper-3:#1C293F;--clay:#1C293F;
+ --bg:#0B1120;--bg-elev-1:#111B2E;--bg-elev-2:#1C293F;--bg-sunk:#070C16;
+ --ink:#F1F5F9;--ink-muted:#CBD5E1;--ink-faint:#94A3B8;--ink-ghost:#64748B;--ink-on-accent:#0F172A;
+ --line:#28364C;--line-strong:#3B4A62;--line-emphasis:#64748B;
+ --accent:#818CF8;--accent-hover:#A5B4FC;--accent-press:#C7D2FE;--accent-tint:#23244C;--accent-tint-2:#333469;--accent-on-ink:#A5B4FC;
+ --brand:#A5B4FC;--brand-hover:#C7D2FE;--brand-subtle:#23244C;
+ --selection-bg:#373073;--selection-fg:#F1F5F9;
+ --signal-warning:#FBBF24;--signal-warning-bg:#342710;--signal-error:#FCA5A5;--signal-error-bg:#371E29;
+ --signal-success:#86EFAC;--signal-success-bg:#143326;--signal-info:#A5B4FC;--signal-info-bg:#23244C;
+ --app-docs:#93C5FD;--app-docs-bg:#1B3051;--app-sheets:#86EFAC;--app-sheets-bg:#143326;
+ --app-slides:#FCD34D;--app-slides-bg:#342710;--app-board:#C4B5FD;--app-board-bg:#2C2446;--app-pdf:#FDA4AF;--app-pdf-bg:#371E29;
+ --oat-50:#F1F5F9;--oat-100:#CBD5E1;--oat-200:#94A3B8;--oat-300:#64748B;--oat-400:#475569;--oat-500:#64748B;--oat-600:#94A3B8;--oat-700:#CBD5E1;--oat-800:#1C293F;--oat-900:#F1F5F9;
+ --elev-1:0 1px 2px rgb(0 0 0 / .2);--elev-2:0 8px 24px -6px rgb(0 0 0 / .35);--elev-3:0 16px 48px -12px rgb(0 0 0 / .5);
+ color-scheme:dark;
+}
+@media (prefers-reduced-motion: reduce) { :root { --duration-fast:0ms;--duration-base:0ms;--duration-slow:0ms; } }

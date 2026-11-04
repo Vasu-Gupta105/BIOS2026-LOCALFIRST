@@ -1,0 +1,28 @@
+// Barrel for design-system primitives.  Apps should prefer this single import
+// path so renames inside the system are absorbed centrally.
+//
+//   import { Button, IconButton, Card } from '../components/ui'
+//
+export { default as Button }     from './Button'
+export { default as IconButton } from './IconButton'
+export { default as ToolbarButton } from './ToolbarButton'
+export { default as Menu }       from './Menu'
+export { default as UrlPopover, isSafeUrl, normalizeUrl } from './UrlPopover'
+export { useToast }              from './Toast'
+export { default as Input }      from './Input'
+export { default as Card }       from './Card'
+export { default as Tabs }       from './Tabs'
+export { default as Modal }      from './Modal'
+export { default as Tooltip }    from './Tooltip'
+export { default as Sidebar } from './Sidebar'
+export { default as LocalFirstLogo } from './LocalFirstLogo'
+export { default as Topbar }     from './Topbar'
+export { default as LoadingState, Skeleton } from './LoadingState'
+export { default as SaveStatus } from './SaveStatus'
+export { default as Avatar, AvatarStack, hueFor } from './Avatar'
+export { default as DocThumb } from './DocThumb'
+export { default as EmptyState } from './EmptyState'
+export { default as ErrorState } from './ErrorState'
+export { default as ThemeSwitch } from './ThemeSwitch'
+export { useTheme }              from './useTheme'
+export { useDialogA11y }         from './useDialogA11y'

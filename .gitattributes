@@ -1,0 +1,5 @@
+# Preserve the workspace's existing file bytes and line endings.
+* -text
+
+# Shell entrypoints need LF endings on Linux.
+*.sh text eol=lf

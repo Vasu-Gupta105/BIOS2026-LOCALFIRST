@@ -1,0 +1,93 @@
+# no-broker-dep:allow-file: names vulos-relayd/Pier twice below describing the OPTIONAL
+# rendezvous_url override (shipped default: rendezvous_url: "", empty) — the actual default
+# path is builtin_rendezvous: true, LocalFirst's OWN self-hosted discovery surface. Verified by
+# backend/config/config_test.go's TestDefault_RendezvousURLEmpty.
+
+# LocalFirst Configuration
+
+server:
+  addr: ":8080"
+  data_dir: "./data"
+  uploads_dir: "./uploads"
+
+auth:
+  enabled: false          # Set to true to require login
+  password: "changeme"    # Password for login (only used if enabled: true)
+  max_attempts: 5         # Lockout after N failed attempts
+  lockout_minutes: 15     # Lock duration in minutes
+  session_hours: 24       # Session expiry in hours
+
+storage:
+  type: "local"           # "local" or "postgres"
+  # PostgreSQL connection (only used if type: "postgres")
+  postgres:
+    host: "localhost"
+    port: 5432
+    user: "postgres"
+    password: ""
+    database: "localfirst"
+    sslmode: "disable"
+
+persistence:
+  # CRDT-native persistence. When true, expose the per-file append-only update
+  # log (POST/GET /api/files/:id/updates) that keeps every CRDT frame so
+  # divergent offline edits converge with nothing discarded. ADDITIVE: the
+  # whole-document PUT keeps working and the frontend dual-writes, so toggling
+  # this never loses a document. The store backend follows storage.type
+  # (local/s3 -> filesystem <data_dir>/updates/<id>/; postgres -> office.file_updates
+  # + office.file_update_snapshots). Frame appends are storage-quota metered.
+  # Env override: VULOS_PERSISTENCE_UPDATELOG / LOCALFIRST_UPDATE_LOG.
+  updatelog: false
+
+collab:
+  # Serve LocalFirst's OWN peer-discovery surface from this binary, at
+  # /api/rendezvous/* (backend/rendezvous). ON by default, and that default is
+  # the point: WebRTC cannot introduce two browsers unaided, so before this
+  # existed a standalone LocalFirst had no peer-to-peer at all unless the operator
+  # also ran a vulos-relayd (Pier) and set rendezvous_url below. One LocalFirst on
+  # one box is now sufficient by itself.
+  #
+  # It carries NO document content — payloads are opaque bytes sealed under a
+  # room key that lives in an invite link's URL fragment and reaches no server,
+  # and edits ride a direct WebRTC data channel. Every write is Ed25519-signed
+  # with a nonce + timestamp (replay-refusing), every size/TTL/queue dimension is
+  # capped, and the surface is per-IP rate-limited — safe to expose on a VPS.
+  #
+  # Set false to serve no discovery yourself: sessions then use rendezvous_url
+  # if set, else stay honestly local-only (the editor keeps working and says so).
+  # Env override: VULOS_BUILTIN_RENDEZVOUS / LOCALFIRST_BUILTIN_RENDEZVOUS.
+  builtin_rendezvous: true
+
+  # Base URL of any vulos-relayd's OPEN rendezvous surface (announce/resolve/
+  # signal/mailbox + ICE), consumed DIRECTLY by the browser. An EXPLICIT choice
+  # to send discovery somewhere else, so it takes precedence over the built-in
+  # surface above — set it for one shared relay across several deployments, or
+  # for its TURN/NAT-traversal help (e.g. "https://relay.example.org"). Leave
+  # blank (default) to use the built-in surface. Exposed read-only to the browser
+  # at GET /api/reachability.
+  # Env override: VULOS_RENDEZVOUS_URL / LOCALFIRST_RENDEZVOUS_URL.
+  # See docs/COLLABORATION.md §3 and docs/CONFIGURATION.md.
+  rendezvous_url: ""
+
+  # STUN/TURN for NAT traversal, served to browsers at GET /api/rendezvous/ice.
+  #
+  # These exist so a RELEASE BINARY or container image can be pointed at a
+  # coturn without rebuilding the frontend — the VITE_STUN_URLS / VITE_TURN_*
+  # variables are baked into the JS bundle at build time and are out of reach for
+  # an operator who just downloaded LocalFirst. Leave empty (default) and the browser
+  # answers from its own build-time config exactly as before.
+  #
+  # The /ice endpoint is UNAUTHENTICATED (a browser needs ICE servers before it
+  # has a session), so anything here is readable by anyone who can reach the box.
+  # STUN URLs are not secret. For TURN prefer turn_secret: it is coturn's
+  # static-auth-secret / REST mode, the secret never leaves this process, and each
+  # response carries a credential that expires after turn_ttl_seconds. A
+  # turn_username/turn_credential pair is served verbatim and is long-lived.
+  # See docs/COTURN.md.
+  ice:
+    stun_urls: []           # e.g. ["stun:turn.example.org:3478"]
+    turn_urls: []           # e.g. ["turn:turn.example.org:3478"]  (needs a credential mode below)
+    turn_secret: ""         # coturn static-auth-secret (recommended)
+    turn_ttl_seconds: 3600
+    turn_username: ""       # long-lived pair; ignored when turn_secret is set
+    turn_credential: ""

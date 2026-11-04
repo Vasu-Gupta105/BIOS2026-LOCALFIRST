@@ -1,0 +1,84 @@
+{
+  "phase": 1,
+  "scope": "Protocol feasibility lab; Windows PCs and Android phones are the future hardware targets",
+  "passed": true,
+  "passScope": "Protocol lab checks and baseline preservation. Missing race-detector toolchain is explicitly an open gate, not a security or production pass.",
+  "repetitions": 10,
+  "relayLeafScenarios": 23,
+  "relayTestExecutions": 230,
+  "allGoTestExecutionsIncludingSubtests": 540,
+  "packages": [
+    "diwan/cmd/diwan-offline",
+    "diwan/internal/nearby"
+  ],
+  "relayTests": [
+    "TestRelayLabEndToEndAcrossMultipleHops/relays-1",
+    "TestRelayLabEndToEndAcrossMultipleHops/relays-2",
+    "TestRelayLabEndToEndAcrossMultipleHops/relays-4",
+    "TestRelayLabEndToEndAcrossMultipleHops/relays-8",
+    "TestRelayLabEndToEndAcrossMultipleHops/relays-16",
+    "TestRelayLabEndToEndAcrossMultipleHops/relays-32",
+    "TestRelayLabFragmentationPreservesAuthenticatedStream/bytes-1",
+    "TestRelayLabFragmentationPreservesAuthenticatedStream/bytes-7",
+    "TestRelayLabFragmentationPreservesAuthenticatedStream/bytes-127",
+    "TestRelayLabFragmentationPreservesAuthenticatedStream/bytes-1024",
+    "TestRelayLabEndpointAuthenticationRejectsWrongCredentials/changed-invitation-byte-0",
+    "TestRelayLabEndpointAuthenticationRejectsWrongCredentials/changed-invitation-byte-40",
+    "TestRelayLabOpaqueStreamAttacksFailClosed/tamper",
+    "TestRelayLabOpaqueStreamAttacksFailClosed/duplicate",
+    "TestRelayLabOpaqueStreamAttacksFailClosed/truncate",
+    "TestRelayLabOpaqueStreamAttacksFailClosed/replay-previous-session",
+    "TestRelayLabPathLossAndConsentDoNotAcknowledgeDelivery/relay-disabled",
+    "TestRelayLabPathLossAndConsentDoNotAcknowledgeDelivery/byte-budget",
+    "TestRelayLabPathLossAndConsentDoNotAcknowledgeDelivery/path-loss",
+    "TestRelayLabPathLossAndConsentDoNotAcknowledgeDelivery/cancel-handshake",
+    "TestRelayLabWrongDocumentCannotCrossCircuit",
+    "TestRelayLabFreshSessionDoesNotTrustOldInvitation",
+    "TestRelayLabTLSLayerCannotBeTerminatedByRelay"
+  ],
+  "labCoverageRows": 11,
+  "pendingScenarios": 56,
+  "missingEvidence": [],
+  "failedTests": [],
+  "goVet": {
+    "passed": true,
+    "output": ""
+  },
+  "raceDetector": {
+    "status": "blocked-toolchain",
+    "compilerTarget": "mingw32",
+    "exitCode": 1,
+    "output": "FAIL\tdiwan/internal/nearby [build failed]\nFAIL\n# runtime/cgo\ncc1.exe: sorry, unimplemented: 64-bit mode not compiled in"
+  },
+  "baselineBefore": {
+    "checkpoint": "../W-Archives/snapshots/Diwan-working-checkpoint-2026-11-01-1793489479899",
+    "sourceAndWorkspaceFilesVerified": 726,
+    "authorizedArchiveToolingChanges": 2,
+    "stableSourceHashChecksStrict": true,
+    "installedPackageFilesVerified": 449,
+    "cacheVersion": "6b75a0e6341b586e",
+    "nativeVersion": "47b9247bbfa3239d"
+  },
+  "baselineAfter": {
+    "checkpoint": "../W-Archives/snapshots/Diwan-working-checkpoint-2026-11-01-1793489479899",
+    "sourceAndWorkspaceFilesVerified": 726,
+    "authorizedArchiveToolingChanges": 2,
+    "stableSourceHashChecksStrict": true,
+    "installedPackageFilesVerified": 449,
+    "cacheVersion": "6b75a0e6341b586e",
+    "nativeVersion": "47b9247bbfa3239d"
+  },
+  "labSourceSha256": "5ac584895392b18183d8fb29de546deb9b5448577190a4f1f879a7f501369709",
+  "labExcludedFromApplicationBuilds": true,
+  "physicalBluetoothRelayTested": false,
+  "measuredRangeMetres": null,
+  "productionReady": false,
+  "independentSecurityAuditCompleted": false,
+  "limitations": [
+    "Memory pipes and one loopback impersonation test are not radio evidence.",
+    "Absence of synthetic plaintext markers in these captures is a limited observation, not a cryptographic proof.",
+    "This phase-one report does not exercise the later Android/Windows prototype, routing discovery, field range or production deployment; see Diwan-relay-experiment-verification.json for prototype software checks.",
+    "Traffic metadata visibility, compromised endpoints and denial of service remain explicit threat-model limits."
+  ],
+  "androidRelayCoveredByThisReport": false
+}

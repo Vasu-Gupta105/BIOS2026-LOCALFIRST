@@ -1,0 +1,68 @@
+# fly.toml — LocalFirst (documents app: Docs/Sheets/Slides/PDF+Signing) on Fly.io
+#
+# LocalFirst is a single Go binary that embeds its Vite SPA and serves the API
+# + static app on :8080. It runs standalone; with STORAGE_TYPE=postgres +
+# DATABASE_URL it uses a shared Postgres, otherwise local storage on the mounted
+# volume.
+#
+# ── Deploy ────────────────────────────────────────────────────────────────────
+# Run from this repository root after choosing an available app name and
+# region below and provisioning the office_data volume in that region.
+# Fly builds the local Dockerfile; no image in an upstream registry is assumed.
+#
+#   fly deploy -c fly.toml
+
+app            = "localfirst"
+primary_region = "PLACEHOLDER"   # Fly region code (e.g. "iad", "lhr", "fra")
+
+[build]
+  dockerfile = "Dockerfile"
+
+# Storage: local by default (data + uploads under /srv/{data,uploads}, since the
+# image's WORKDIR is /srv and the server's data_dir/uploads_dir default to
+# ./data and ./uploads). To use a shared Postgres instead, set DATABASE_URL as a
+# secret — main.go/storage.Resolve select Postgres when DATABASE_URL (or
+# VULOS_DATABASE_URL) is present, overriding the local default:
+#   fly secrets set -c fly.toml DATABASE_URL=postgres://...
+#
+# ── SSO session introspection (cloud / multi-user) ────────────────────────────
+# Office holds NO session-signing power. In cloud it validates the browser's
+# `vc_session` cookie against the control plane by introspection. Set as secrets:
+#   fly secrets set -c fly.toml \
+#     IDENTITY_URL=https://cp.vulos.org \
+#     VULOS_CP_TOKEN=<the CP shared secret (== CP_SHARED_SECRET)>
+# With IDENTITY_URL UNSET the SSO path is disabled and Office keeps its local
+# single-identity behavior (self-host appliance). VULOS_CP_TOKEN is the same
+# service-auth secret Office already presents for API-key/entitlements calls —
+# it is NOT a signing key.
+
+# The server writes app data under ./data (i.e. /srv/data, since the image
+# WORKDIR is /srv). Persist that path with the volume. Uploads land in
+# /srv/uploads; add a second mount if you need those to survive redeploys too.
+[[mounts]]
+  source      = "office_data"
+  destination = "/srv/data"
+
+[http_service]
+  internal_port        = 8080          # server.addr default in config
+  force_https          = true
+  auto_stop_machines   = "stop"
+  auto_start_machines  = true
+  min_machines_running = 1
+  processes            = ["app"]
+
+  [http_service.concurrency]
+    type       = "requests"
+    hard_limit = 250
+    soft_limit = 200
+
+  [[http_service.checks]]
+    type         = "http"
+    path         = "/healthz"
+    interval     = "15s"
+    timeout      = "5s"
+    grace_period = "10s"
+
+[[vm]]
+  size   = "shared-cpu-1x"
+  memory = "1gb"

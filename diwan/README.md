@@ -1,0 +1,305 @@
+# BIOS2026
+
+<div align="center">
+
+<img src="brand/logo.svg" alt="LocalFirst" width="120" />
+
+# LocalFirst
+
+> LocalFirst extends the original open-source office engines from [the upstream repository](https://github.com/vul-os/diwan). Original licenses and authorship are preserved. See [the modernization and migration notes](docs/LOCALFIRST-MODERNIZATION.md) for the current interface and compatibility contracts.
+
+
+[![CI](https://github.com/Vasu-Gupta105/BIOS2026/actions/workflows/ci.yml/badge.svg)](https://github.com/Vasu-Gupta105/BIOS2026/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/Vasu-Gupta105/BIOS2026?sort=semver&label=release)](https://github.com/Vasu-Gupta105/BIOS2026/releases)
+[![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE-MIT)
+[![Go 1.25](https://img.shields.io/badge/Go-1.25-00ADD8?logo=go&logoColor=white)](go.mod)
+[![React 18](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)](web/package.json)
+
+### A real, self-hostable collaborative office suite you own.
+
+Documents, spreadsheets, slides, and whiteboards — **CRDT-native** and
+**real-time**, shipped as a single binary, running on **your own storage**.
+No cloud account, no telemetry, no lock-in.
+
+**[Changelog](CHANGELOG.md) · [MIT OR Apache-2.0](LICENSE-MIT) · [Self-hostable, single binary](docs/SELFHOST.md) · [CRDT, real-time P2P](docs/COLLABORATION.md) · Go 1.25 · React 18**
+
+[**Quickstart**](#quick-start) · [**Docs**](docs/) · [**Collaboration**](docs/COLLABORATION.md) · [**Architecture**](docs/ARCHITECTURE.md) · [**Self-hosting**](docs/SELFHOST.md)
+
+<br/>
+
+<img src="docs/screenshots/home-light.png" alt="Current LocalFirst workspace with documents, spreadsheets, presentations, whiteboards and PDF Studio" width="900" />
+
+</div>
+
+---
+
+## What is LocalFirst?
+
+LocalFirst is a **standalone, self-hostable office suite** — documents, spreadsheets,
+slides, and whiteboards in one clean, modern web app, shipped as a **single Go
+binary** with the entire frontend embedded. There is no cloud account to create,
+nothing phones home, and your files live in **your own storage**.
+
+Real-time co-editing is **peer-to-peer and CRDT-native**: there is no central
+document server. Peers sync directly over an end-to-end-encrypted channel, and
+because edits are conflict-free (CRDTs), everyone converges with no authority in
+the middle. What you run is what you own.
+
+It carries the torch lit by **LibreOffice** and **OpenOffice** — the projects
+that proved productivity software can be free, open, and community-driven — into
+the browser, on a fast React frontend and a lightweight Go backend.
+
+```mermaid
+%%{init: {'theme':'base','themeVariables':{'fontFamily':'ui-monospace, SFMono-Regular, Menlo, monospace','primaryColor':'#2A241C','primaryBorderColor':'#8E8677','primaryTextColor':'#F1EBE0','lineColor':'#D0471F','edgeLabelBackground':'#201B15','tertiaryTextColor':'#F1EBE0','clusterBorder':'#8E8677','clusterBkg':'transparent'}}}%%
+flowchart LR
+    classDef entry fill:#201B15,stroke:#8E8677,color:#C3BAAC
+    classDef subject fill:#AE3917,stroke:#FF8759,color:#FFF1EA
+    classDef downstream fill:#2A241C,stroke:#8E8677,color:#F1EBE0
+    you["you (browser)"] -->|edits| localfirst["LocalFirst<br/>single binary"]
+    peer["a collaborator"] -.->|"E2E-encrypted P2P (WebRTC)"| you
+    localfirst --> store["your storage<br/>files · SQLite · Postgres · S3"]
+    localfirst --> surfaces["Docs · Sheets · Slides<br/>Whiteboards · PDF signing"]
+    class you,peer entry
+    class localfirst subject
+    class store,surfaces downstream
+```
+
+> *Your workspace. Your data. Your control.*
+
+<sub>The mark is an **iwan** — the vaulted portal at the heart of Persian and Ottoman
+architecture, the arch you pass through to reach the room where the registers were
+kept. Give it a quarter turn clockwise and it becomes a **D**: the arch's two legs
+are the bars, the teal threshold is the stem.</sub>
+
+---
+
+## Features
+
+| | |
+|---|---|
+| 📝 **Documents** | Rich-text editing (TipTap) — headings, tables, inline images, footnotes, task lists, links; anchored **comments**, **suggestions** (track-changes with accept/reject), **version history** with restore, find/replace, live outline + word count. |
+| 📊 **Spreadsheets** | A full grid (Fortune Sheet) — formulas, number formats, conditional formatting, **data validation**, **charts**, **filters**, **pivot tables**, **named ranges**, freeze panes. |
+| 🖼️ **Slides** | A from-scratch positioned-object canvas — free drag/resize/rotate of text, shapes, and images; per-element **animations**, **themes**, editable **master slides**, per-slide **transitions**, and a **presenter view** (notes + timer). |
+| 🎨 **Whiteboards** | An infinite hand-drawn canvas built on the MIT [Excalidraw](https://github.com/excalidraw/excalidraw) editor — shapes, arrows, freehand, text, and images. The scene is a **Yjs CRDT** synced over the **same** E2E-encrypted P2P engine as Docs. |
+| ⚡ **Real-time co-editing** | **Always peer-to-peer, no central document server.** Edits sync as CRDT updates inside an **end-to-end-encrypted** room; peers connect directly over WebRTC with a **content-blind relay** only as a hard-NAT fallback. Share by invite link — the key rides the URL fragment and never reaches any server. |
+| 📄 **PDF import / export & signing** | Import and export `.docx` · `.xlsx` · `.csv` · `.pptx` · Markdown · HTML · **PDF**. View, annotate, fill AcroForm fields, and **sign** PDFs, including multi-party signing envelopes with a cryptographic audit trail. |
+| 💾 **Your own storage** | Local files + SQLite by default; optional **PostgreSQL** (schema `office`) for multi-user; optional **S3-compatible** object store. Nothing is hosted for you unless you choose it. |
+| 🔓 **No lock-in** | Open formats in and out, MIT-licensed, single self-contained binary. Every editor is also published as an npm library (the `localfirst` package — `localfirst/docs`, `localfirst/sheets`, `localfirst/slides`, `localfirst/whiteboard`, `localfirst/pdf`) so you can embed any surface in your own app. |
+
+LocalFirst is **documents-only** by design: Docs, Sheets, Slides, Whiteboards, and
+PDF signing. Chat, video, and mail are deliberately *not* part of it.
+
+---
+
+## Screenshots
+
+The current LocalFirst interface uses an indigo accent, a clear workspace sidebar
+and dedicated editors for each file type, with light, dark and system themes.
+These screenshots show the real offline app with sample files, captured on
+1 November 2026.
+
+|  |  |
+| :---: | :---: |
+| **Documents** — formatting tools and a focused writing canvas | **Spreadsheets** — a populated workbook with formulas |
+| <img src="docs/screenshots/docs-editor-light.png" alt="LocalFirst Documents editor" /> | <img src="docs/screenshots/sheets-editor-light.png" alt="LocalFirst Spreadsheets editor" /> |
+| **Slides** — a presentation on the slide canvas | **Whiteboards** — an architecture sketch in Excalidraw |
+| <img src="docs/screenshots/slides-editor-light.png" alt="LocalFirst Slides editor" /> | <img src="docs/screenshots/whiteboard-editor-light.png" alt="LocalFirst Whiteboard editor" /> |
+| **Files** — documents saved on this device | **PDF Studio** — a sample PDF open for review |
+| <img src="docs/screenshots/apphome-docs-light.png" alt="LocalFirst Docs file list" /> | <img src="docs/screenshots/pdf-editor-light.png" alt="LocalFirst PDF Studio with a sample project brief" /> |
+
+**Light &amp; dark** — every surface ships both, light-first:
+
+|  |  |
+| :---: | :---: |
+| <img src="docs/screenshots/home-dark.png" alt="LocalFirst workspace, dark theme" /> | <img src="docs/screenshots/docs-editor-dark.png" alt="LocalFirst Documents editor, dark theme" /> |
+
+> From `web/`, run `npm run build:offline` and `npm run screenshots:offline` to
+> capture the current app in light and dark at retina resolution. Sample files
+> use a fresh browser profile. See [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md).
+
+---
+
+## Quick start
+
+LocalFirst runs **by itself** — no account, no cloud, no external service required.
+
+### Docker (build and run)
+
+```bash
+git clone https://github.com/Vasu-Gupta105/BIOS2026.git localfirst
+cd localfirst
+docker build -t localfirst:local .
+docker run -d \
+  --name localfirst \
+  -p 8080:8080 \
+  -v localfirst-data:/srv/data \
+  -v localfirst-uploads:/srv/uploads \
+  localfirst:local
+```
+
+Open <http://localhost:8080>. For an existing installation, reuse its current data and uploads volumes.
+
+### From source (single binary)
+
+Prerequisites: [Go 1.25+](https://golang.org/dl/) and [Node.js 22.12+ or 20.19+](https://nodejs.org/) with npm. The module may download its pinned Go toolchain.
+
+```bash
+git clone https://github.com/Vasu-Gupta105/BIOS2026.git localfirst
+cd localfirst
+
+# Install deps and build the frontend + single binary
+npm --prefix web ci
+npm --prefix web run build
+
+# Run — single-user, local storage, no auth, no cloud
+./localfirst
+```
+
+Open <http://localhost:8080>. Data lives in `./data` and `./uploads` — that's the
+whole app, in one file. The Go module and the binary it builds are named
+`localfirst`; the npm package and the product are **LocalFirst**.
+
+To require login (still fully standalone):
+
+```bash
+# config.yaml → auth.enabled: true
+export LOCALFIRST_JWT_SECRET="$(openssl rand -hex 32)"
+./localfirst
+```
+
+### Develop
+
+```bash
+npm run dev:web   # Vite dev server (:5173) + Go API (:8080), live reload
+```
+
+Open <http://localhost:5173>.
+
+### Install from the Vulos app store
+
+LocalFirst also installs as a one-click app on a **Vulos OS** box (`DEPLOY_MODE=os`),
+where it runs behind the box gateway with scoped storage and single sign-on. It
+is the **same binary** — the app store just wires identity and storage for you.
+Self-hosting it yourself is always the default path, and never second-class.
+
+---
+
+## Architecture
+
+```mermaid
+%%{init: {'theme':'base','themeVariables':{'fontFamily':'ui-monospace, SFMono-Regular, Menlo, monospace','primaryColor':'#2A241C','primaryBorderColor':'#8E8677','primaryTextColor':'#F1EBE0','lineColor':'#D0471F','edgeLabelBackground':'#201B15','tertiaryTextColor':'#F1EBE0','clusterBorder':'#8E8677','clusterBkg':'transparent'}}}%%
+flowchart TD
+    classDef entry fill:#201B15,stroke:#8E8677,color:#C3BAAC
+    classDef subject fill:#AE3917,stroke:#FF8759,color:#FFF1EA
+    classDef downstream fill:#2A241C,stroke:#8E8677,color:#F1EBE0
+    FE["React + Vite + Tailwind frontend<br/>Docs · Sheets · Slides · Whiteboards · PDF signing"]
+    BE["Go backend (Gin)<br/>handlers · userauth · signing · storage · obs"]
+    Seam["backend/seam — Identity · Entitlements · Usage<br/>standalone defaults (local, unlimited, no-op)"]
+    Adapter["backend/integration<br/>(optional identity/entitlements adapter, opt-in)"]
+    FE -->|"embedded into the binary"| BE
+    BE --> Seam
+    Seam -->|optional| Adapter
+    class FE entry
+    class BE subject
+    class Seam,Adapter downstream
+```
+
+LocalFirst is a **single Go binary with the whole frontend embedded** — one file to
+deploy. With zero configuration it runs as a single-user, local-storage app on
+your own machine. Everything that *could* tie it to an external service lives
+behind a small set of Go interfaces in `backend/seam`; the standalone build
+wires local, unlimited, no-op defaults and never imports the optional adapter.
+
+Real-time collaboration is **CRDT-based and always peer-to-peer**: Docs and
+whiteboards sync as Yjs updates, Sheets and Slides use LWW/tree CRDTs, all inside
+an end-to-end-encrypted room whose key never reaches any server. The only server
+role is **content-blind peer discovery** — it learns *that* peers share a random
+room id, never any content — and **this binary serves that itself**, at
+`/api/rendezvous/*`, on by default. So one `localfirst` on one box is all two people
+need: **no Vulos OS, no Pier, no relay, no account, nothing to configure**. You
+*may* delegate discovery to your own `vulos-relayd` instead
+(`collab.rendezvous_url` / `VULOS_RENDEZVOUS_URL`), and it then takes precedence —
+the browser talks to that relay directly and LocalFirst's server is not in the
+discovery path at all. See
+[docs/COLLABORATION.md](docs/COLLABORATION.md) §3 and
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+---
+
+## Documentation
+
+Full documentation lives in **[`docs/`](docs/)**.
+
+| Document | Description |
+|----------|-------------|
+| [Getting started](docs/GETTING-STARTED.md) | Run it locally, in Docker, or in production |
+| [Self-hosting](docs/SELFHOST.md) | Run fully standalone; the optional identity/entitlements seam |
+| [Collaboration](docs/COLLABORATION.md) | How real-time P2P CRDT editing works, end to end |
+| [Architecture](docs/ARCHITECTURE.md) | Component map and design decisions |
+| [Configuration](docs/CONFIGURATION.md) | Env vars, `config.yaml`, storage, OTEL reference |
+| [API](docs/API.md) | REST API — files, versions, collab, signing |
+| [Admin guide](docs/ADMIN-GUIDE.md) | Deploy, back up, and operate the server |
+| [Deploy](docs/DEPLOY.md) | Docker, single-box co-location, static CDN |
+| [Testing](docs/TESTING.md) | Vitest unit + RTL/MSW integration, Playwright E2E |
+| [Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md) | Plans and version history |
+
+---
+
+## Development
+
+```bash
+npm run dev:web        # Vite (:5173) + Go API (:8080)
+npm test               # unit + RTL/MSW integration tests (Vitest)
+npm run test:e2e       # browser E2E (Playwright, backend mocked)
+npm run test:e2e:p2p   # REAL P2P: one real binary + two real browsers, no external deps
+npm run build          # frontend dist/ + Go binary
+npm run screenshots    # regenerate the docs/screenshots gallery
+
+go build ./...  &&  go test ./...  &&  go vet ./...
+```
+
+> **Frozen invariants:** pure Go (no CGO), JSX only (never `.tsx`), no third-party
+> SSO or payment lock-in in the standalone build. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
+## Security
+
+LocalFirst centralises HTML sanitisation in one audited DOMPurify policy, treats CRDT
+ingress as fail-closed, gates read-only collaborators cryptographically, and
+enforces per-file ACLs when multi-user auth is on. Found a vulnerability? Please
+report it **privately** — see [SECURITY.md](SECURITY.md), [THREAT-MODEL.md](docs/THREAT-MODEL.md),
+and [SECURITY-TESTING.md](docs/SECURITY-TESTING.md). Do not open public issues for
+security reports.
+
+---
+
+## Contributing
+
+Pull requests are welcome — bug fixes, signing robustness, accessibility, tests,
+and docs especially. For major changes, open an issue first. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for setup, code style, and the frozen
+invariants. No CLA required.
+
+---
+
+## Brand
+
+The mark in [`brand/`](brand/) is the source of truth. Every icon this repo
+ships — favicon, PWA and app icons, the mark in the README and on the site — is
+rendered from `brand/logo.svg` rather than redrawn, so there is one approved
+drawing and no second copy to drift.
+
+Copy it outward, never edit a derived copy, and never edit `brand/` to match
+something downstream.
+
+## License
+
+[MIT](LICENSE-MIT) OR [Apache-2.0](LICENSE-APACHE). The original office suite is © VulOS; its licenses, notices and authorship are retained. LocalFirst / BIOS2026 extends that software. See the [original upstream source](https://github.com/vul-os/diwan) and the [LocalFirst source and issues](https://github.com/Vasu-Gupta105/BIOS2026).
+
+---
+
+<p align="center">
+  <a href="https://vulos.org"><img src="site/assets/vulos-logo.png" alt="vulos" height="20"></a><br>
+  <sub><a href="https://vulos.org"><b>vulos</b></a> — open by design</sub>
+</p>

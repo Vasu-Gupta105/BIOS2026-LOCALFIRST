@@ -1,0 +1,97 @@
+{
+  "purpose": "Software checks and isolated package smoke test for the fixed-route Android relay experiment",
+  "passed": true,
+  "androidApk": "diwan/experiments/android-relay/app/build/outputs/apk/debug/app-debug.apk",
+  "windowsPackage": "diwan/relay-experiment-package/windows-x64",
+  "physicalBluetoothRelayVerified": false,
+  "androidDeviceLifecycleVerified": false,
+  "androidEndpointApplicationImplemented": false,
+  "measuredRangeMetres": null,
+  "productionReady": false,
+  "independentSecurityAuditCompleted": false,
+  "raceDetectorPassed": false,
+  "raceDetectorLimitation": "Existing local 32-bit MinGW cannot build the Windows amd64 race runtime; this verifier does not claim a race-detector pass.",
+  "stableBefore": {
+    "cacheVersion": "6b75a0e6341b586e",
+    "nativeVersion": "47b9247bbfa3239d"
+  },
+  "jvmCore": {
+    "passed": true,
+    "checks": 108,
+    "sourceSha256": "fc89198ebc11752f317b42e5a87fee292b24b02eb2683da7599cde2e4b9bba8a",
+    "testsSha256": "d24b4941a7b4e1f1ef232bfa3e1a0218f8eca9a365c12d15f9b49c67be37747d",
+    "physicalBluetoothVerified": false
+  },
+  "goProtocolTests": {
+    "passed": true,
+    "repetitions": 3,
+    "distinctLeafScenarios": 9,
+    "leafExecutions": 27,
+    "scenarios": [
+      "TestExperimentalRelayCodeIsSeparateFromDocumentInvitation",
+      "TestExperimentalRelaySyntheticDocumentTLSExchange",
+      "TestExperimentalRelaySyntheticWrongTokenNeverReachesEndpoint",
+      "TestExperimentalRelaySyntheticDocumentIdentityStillPinned/wrong-pin",
+      "TestExperimentalRelaySyntheticDocumentIdentityStillPinned/wrong-document-secret",
+      "TestExperimentalRelayAdmissionSendsOnlyItsOwnToken",
+      "TestExperimentalRelayAdmissionFailsClosed/wrong-ready",
+      "TestExperimentalRelayAdmissionFailsClosed/closed",
+      "TestExperimentalRelayAdmissionFailsClosed/cancelled"
+    ],
+    "transport": "synthetic memory/loopback; not physical Bluetooth"
+  },
+  "goVet": {
+    "passed": true,
+    "buildTag": "relay_experiment"
+  },
+  "androidLint": {
+    "passed": true,
+    "issues": 0,
+    "report": "diwan/experiments/android-relay/app/build/reports/lint-results-debug.txt",
+    "reportSha256": "a69ecb171bea9d40de22744c85220b4a4ea12f5a25ce7976d67f2c88c9195334",
+    "newerThanApplicationSources": true
+  },
+  "androidArtifact": {
+    "debugSigned": true,
+    "signatureVerified": true,
+    "signatureSchemeV2": true,
+    "signingCertificateSha256": "c4e60d5aba577fbf872f5eb3ee834cdd9653730f478c849c8930bc0f206459f0",
+    "sha256": "4c31bb53c1fd118cd5954f9aa4186f58fa029a3e39ed4e93769aef2e634e0e62",
+    "bytes": 26367,
+    "applicationId": "org.diwan.relay.experimental",
+    "permissions": [
+      "android.permission.BLUETOOTH",
+      "android.permission.BLUETOOTH_ADMIN",
+      "android.permission.BLUETOOTH_CONNECT",
+      "android.permission.POST_NOTIFICATIONS",
+      "android.permission.FOREGROUND_SERVICE",
+      "android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"
+    ],
+    "internetPermission": false
+  },
+  "debugSigned": true,
+  "windowsArtifact": {
+    "exeSha256": "b924c870e8b98b24e48c239229c9c5ea05e8cf5a22721897a718e9a87c0ea353",
+    "cacheVersion": "3ac59f4922ca6356",
+    "nativeVersion": "b924c870e8b98b24",
+    "experimentalPort": 8768,
+    "smokePort": 8769
+  },
+  "windowsSmoke": {
+    "passed": true,
+    "launcherActivated": true,
+    "experimentalBannerVisible": true,
+    "bluetoothSharingVisible": true,
+    "nativeDialogVisible": true,
+    "localNativeRequests": 4,
+    "externalOrDocumentApiRequests": [],
+    "browserErrors": [],
+    "testDocumentCreated": false,
+    "remoteBluetoothConnectionAttempted": false
+  },
+  "stableAfter": {
+    "cacheVersion": "6b75a0e6341b586e",
+    "nativeVersion": "47b9247bbfa3239d"
+  },
+  "stableVersionsPreserved": true
+}

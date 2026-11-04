@@ -1,0 +1,61 @@
+
+# Environment files and credentials. Commit only placeholder templates.
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*.local
+*.clixml
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa
+id_ed25519
+.npmrc.local
+
+# Downloaded tools, deployment state, and private application data.
+/.tools/
+/Diwan-Cloud/
+.vercel/
+.railway/
+data/
+uploads/
+logs/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+
+# Dependencies and generated packages (source and lockfiles stay tracked).
+node_modules/
+/diwan/relay-experiment-package/
+*.exe
+*.apk
+*.aab
+.gradle/
+local.properties
+
+# Local verification output, screenshots, and archive pointers.
+/Diwan-*.json
+/Diwan-*.png
+# Historical evidence linked by the judging guide; machine paths are removed.
+!/Diwan-offline-package-verification.json
+!/Diwan-relay-phase1-verification.json
+!/Diwan-relay-experiment-verification.json
+
+# Build/test output and editor files.
+*.log
+coverage/
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
